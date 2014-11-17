@@ -1,0 +1,6 @@
+http://echo.msk.ru/guests/806294-echo/rss-audio.xml
+http://echo.msk.ru/guests/7684/rss-audio.xml
+http://feeds.rucast.net/radio-t
+http://pirates.radio-t.com/atom.xml
+http://echo.msk.ru/guests/10284/rss-audio.xml
+http://echo.msk.ru/guests/267/rss-audio.xml
