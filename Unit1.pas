@@ -348,11 +348,13 @@ end;
 
 procedure TForm1.StatusBar1Click(Sender: TObject);
 begin
+if Button1.Enabled=true then begin
 inc(ClickStatusBar);
 if ClickStatusBar=1 then if CustomMessageDialog('Удалить старые ссылки? Ускорит поиск новых подкастов.','Проверка старых ссылок',mtCustom,[mbYes,mbNo],'Да,Нет') = mrYes then CheckLinksDownloaded;
 if ClickStatusBar=2 then begin
 Application.MessageBox('PodCast Easy 0.5'+#13#10+'https://github.com/r57zone'+#13#10+'Последнее обновление: 04.09.2014','О программе...',0);
 ClickStatusBar:=0;
+end;
 end;
 end;
 
