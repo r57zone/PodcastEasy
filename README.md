@@ -15,6 +15,9 @@ Podcast Easy - Подкаст менеджер.
 
 <h2>EN:</h2>
 Podcast Easy - Podcast Manager.
+
+![2](https://cloud.githubusercontent.com/assets/9499881/5962872/6b63de8c-a800-11e4-90a1-9bf031450426.png)
+
 Before the first pressing the update after the addition of RSS feeds, you need to remove the check mark from the "Load podcasts." This is to ensure that for the first time do not download all the podcasts from RSS feeds.
 
 In the file "rss.txt" you need to add the podcast RSS feed. File "downloaded.txt" contains links to downloads of podcasts to not download them again. From time to time it is necessary to clean the list of downloaded files, you can do so by clicking on the status bar of the program. <br>

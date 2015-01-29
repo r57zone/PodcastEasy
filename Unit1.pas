@@ -32,7 +32,7 @@ type
 
 var
   Form1: TForm1;
-  pathdownload:string;
+  PathDownload:string;
   SyncList:TStringList;
   hTargetWnd:hwnd;
   ClickStatusBar:integer;
@@ -52,21 +52,20 @@ function CheckUrl(url: string ):boolean;
 var
 hSession, hfile, hRequest: hInternet;
 dwindex,dwcodelen:dword;
-dwcode: array [1..20] of char;
-res : pchar;
+dwcode:array [1..20] of char;
+res:PChar;
 begin
 if pos('http://',lowercase(url))= 0 then
 url:='http://'+url;
-Result := false;
+Result:=false;
 hSession:=InternetOpen('InetURL:/1.0',INTERNET_OPEN_TYPE_PRECONFIG, nil,nil,0);
-if assigned(hsession) then
+if Assigned(hsession) then
 begin
 hfile:=InternetOpenUrl(hsession,pchar(url),nil,0,INTERNET_FLAG_RELOAD,0);
 dwIndex:=0;
 dwCodeLen := 10 ;
-HttpQueryInfo(hfile, HTTP_QUERY_STATUS_CODE,
-@dwcode, dwcodeLen, dwIndex);
-res := pchar(@dwcode);
+HttpQueryInfo(hfile, HTTP_QUERY_STATUS_CODE,@dwcode, dwcodeLen, dwIndex);
+res:=PChar(@dwcode);
 result:=(res ='200') or (res ='302');
 if Assigned(hfile) then
 InternetCloseHandle(hfile);
@@ -87,31 +86,25 @@ HTTP_PORT=80;
 CRLF=#13#10;
 Header='Content-Type: application/x-www-form-urlencoded' + CRLF;
 begin
-Result:= '';
-FHost := DelHttp(Url);
-FScript := Url;
+Result:='';
+FHost:=DelHttp(Url);
+FScript:=Url;
 Delete(FScript, 1, Pos(FHost, FScript) + Length(FHost));
-FSession := InternetOpen('DMFR', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+FSession:=InternetOpen('DMFR', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
 if not Assigned(FSession) then Exit;
 try
-FConnect := InternetConnect(FSession, PChar(FHost), HTTP_PORT, nil,
-'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0);
+FConnect := InternetConnect(FSession, PChar(FHost), HTTP_PORT, nil,'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0);
 if not Assigned(FConnect) then Exit;
 try
-Ansi := 'text/*';
-FRequest := HttpOpenRequest(FConnect, 'GET', PChar(FScript), 'HTTP/1.1',
-nil, @Ansi, INTERNET_FLAG_RELOAD, 0);
+Ansi:='text/*';
+FRequest:=HttpOpenRequest(FConnect, 'GET', PChar(FScript), 'HTTP/1.1',nil, @Ansi, INTERNET_FLAG_RELOAD, 0);
 if not Assigned(FConnect) then Exit;
 try
-if not (HttpAddRequestHeaders(FRequest, Header, Length(Header),
-HTTP_ADDREQ_FLAG_REPLACE or
-HTTP_ADDREQ_FLAG_ADD or
-HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA)) then Exit;
-Len := 0;
-Res := 0;
-SRequest := ' ';
-HttpQueryInfo(FRequest, HTTP_QUERY_RAW_HEADERS_CRLF or
-HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
+if not (HttpAddRequestHeaders(FRequest, Header, Length(Header),HTTP_ADDREQ_FLAG_REPLACE or HTTP_ADDREQ_FLAG_ADD or HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA)) then Exit;
+Len:=0;
+Res:=0;
+SRequest:=' ';
+HttpQueryInfo(FRequest, HTTP_QUERY_RAW_HEADERS_CRLF or HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
 if Len>0 then
 begin
 SetLength(SRequest, Len);
@@ -137,9 +130,9 @@ InternetCloseHandle(FSession);
 end;
 end;
 
-function getinetfile(const fileurl, path: string): boolean;
+function GetInetFile(const FileUrl, Path: string): boolean;
 const
-buffersize = 1024;
+buffersize=1024;
 var
 hsession, hurl: hinternet;
 buffer: array[1..buffersize] of byte;
@@ -148,41 +141,41 @@ f: file;
 sappname: string;
 i:integer;
 begin
-result:= false;
+result:=false;
 sappname:=extractfilename(application.exename);
 hsession:=internetopen(pchar(sappname),
 internet_open_type_preconfig, nil, nil, 0);
 try
-hurl:=internetopenurl(hsession, pchar(fileurl), nil, 0, 0, 0);
+hurl:=internetopenurl(hsession, pchar(FileUrl), nil, 0, 0, 0);
 try
-if not FileExists(path+ExtractFileName(StringReplace(fileurl, '/', '\', [rfReplaceAll]))) then begin
+if not FileExists(Path+ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]))) then begin
 
-SyncList.Add(path+ExtractFileName(StringReplace(fileurl, '/', '\', [rfReplaceAll])));  //Standard modular program
+SyncList.Add(Path+ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll])));  //Standard modular program
 
-AssignFile(f, path+ExtractFileName(StringReplace(fileurl, '/', '\', [rfReplaceAll]))) end else begin
+AssignFile(f, Path+ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]))) end else begin
 for i:=1 to 999999 do
-if not FileExists(path+ExtractFileName(StringReplace(copy(fileurl,1,length(fileurl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3') then begin
+if not FileExists(Path+ExtractFileName(StringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3') then begin
 
-SyncList.Add(path+ExtractFileName(StringReplace(copy(fileurl,1,length(fileurl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3'); //Standard modular program
+SyncList.Add(Path+ExtractFileName(StringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3'); //Standard modular program
 
-AssignFile(f, path+ExtractFileName(StringReplace(copy(fileurl,1,length(fileurl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3');
+AssignFile(f, Path+ExtractFileName(StringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3');
 break;
 end;
 end;
-rewrite(f,1);
+Rewrite(f,1);
 repeat
-internetreadfile(hurl, @buffer, sizeof(buffer), bufferlen);
-blockwrite(f, buffer, bufferlen);
+InternetReadFile(hurl, @buffer, sizeof(buffer), bufferlen);
+BlockWrite(f, buffer, bufferlen);
 Application.ProcessMessages;
 until
 bufferlen=0;
-closefile(f);
+CloseFile(f);
 result:=true;
 finally
-internetclosehandle(hurl);
+InternetCloseHandle(hurl);
 end;
 finally
-internetclosehandle(hsession);
+InternetCloseHandle(hsession);
 end;
 end;
 
@@ -218,29 +211,29 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-getrss,downloaded,download:tstringlist; i,j,n,d:integer;
+getrss,downloaded,download:TStringList; i,j,n,d:integer;
 begin
-getrss:=tstringlist.create;
-downloaded:=tstringlist.create;
-download:=tstringlist.create;
+getrss:=TStringList.Create;
+downloaded:=TStringList.Create;
+download:=TStringList.Create;
 Button1.Enabled:=false;
 Checkbox1.Enabled:=false;
 Memo1.ReadOnly:=true;
-if FileExists(ExtractFilePath(paramstr(0))+'downloaded.txt') then
-downloaded.LoadFromFile(ExtractFilePath(paramstr(0))+'downloaded.txt');
-for i:=0 to memo1.lines.count-1 do begin
-getrss.Text:=geturl(memo1.Lines.Strings[i]);
+if FileExists(ExtractFilePath(ParamStr(0))+'downloaded.txt') then
+downloaded.LoadFromFile(ExtractFilePath(ParamStr(0))+'downloaded.txt');
+for i:=0 to Memo1.Lines.Count-1 do begin
+getrss.Text:=geturl(Memo1.Lines.Strings[i]);
 getrss.Text:=StringReplace(getrss.Text,'<enclosure',#13+'<enclosure',[rfreplaceall]);
 getrss.Text:=StringReplace(getrss.Text,'<pubDate>',#13+'<pubDate>',[rfreplaceall]);
 if pos('<audio src="',getrss.Text)>0 then getrss.Text:=StringReplace(getrss.Text,'<audio src="',#13+'<audio url="',[rfreplaceall]);
-StatusBar1.SimpleText:=' Проверка новостных лент : '+inttostr(i+1)+' из '+inttostr(memo1.lines.count);
+StatusBar1.SimpleText:=' Проверка новостных лент : '+inttostr(i+1)+' из '+inttostr(Memo1.Lines.Count);
 if trim(getrss.Text)='' then continue;
-for j:=0 to getrss.count-1 do
+for j:=0 to getrss.Count-1 do
 if pos('.MP3',AnsiUpperCase(getrss.Strings[j]))>0 then
 if (pos(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3"',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1),downloaded.Text)=0) and (pos('<GUID',AnsiUpperCase(getrss.Strings[j]))=0) and
 (checkurl(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3"',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1))=true) then
 if (pos(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3"',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1),download.Text)=0) then begin
-StatusBar1.SimpleText:=' Найден новый подкаст на '+copy(memo1.Lines.Strings[i],1,20)+'...';
+StatusBar1.SimpleText:=' Найден новый подкаст на '+copy(Memo1.Lines.Strings[i],1,20)+'...';
 download.Add(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3"',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1));
 end;
 end;
@@ -251,7 +244,7 @@ SyncList.Add('FILES TO SYNC');
 //end Smp
 for i:=0 to download.Count-1 do begin
 StatusBar1.SimpleText:=' Загрузка подкастов : '+IntToStr(i)+' из '+IntToStr(download.Count);
-if CheckBox1.Checked then getinetfile(download.Strings[i],pathdownload);
+if CheckBox1.Checked then getinetfile(download.Strings[i],PathDownload);
 application.ProcessMessages;
 end;
 StatusBar1.SimpleText:=' Все подкасты загружены';
@@ -259,10 +252,10 @@ downloaded.Add(download.Text);
 
 for d:=downloaded.Count-1 downto 0 do
 if Length(trim(downloaded.Strings[d]))=0 then downloaded.Delete(d);
-downloaded.SaveToFile(extractfilepath(paramstr(0))+'downloaded.txt');
+downloaded.SaveToFile(ExtractFilePath(ParamStr(0))+'downloaded.txt');
 end else StatusBar1.SimpleText:=' Новых подкастов не найдено';
 if Memo1.Lines.Count>0 then
-Memo1.Lines.SaveToFile(extractfilepath(paramstr(0))+'rss.txt');
+Memo1.Lines.SaveToFile(ExtractFilePath(ParamStr(0))+'rss.txt');
 Button1.Enabled:=true;
 Checkbox1.Enabled:=true;
 Memo1.ReadOnly:=false;
@@ -278,23 +271,23 @@ Ini:TIniFile;
 begin
 ClickStatusBar:=0;
 Button1.ControlState:=[csFocusing];
-Ini:=TIniFile.Create(extractfilepath(paramstr(0))+'setup.ini');
-pathdownload:=Ini.ReadString('Main','Path',extractfilepath(paramstr(0)));
+Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'setup.ini');
+PathDownload:=Ini.ReadString('Main','Path',ExtractFilePath(ParamStr(0)));
 Ini.Free;
 Application.Title:=Caption;
-if fileexists(extractfilepath(paramstr(0))+'rss.txt') then
-Memo1.Lines.LoadFromFile(extractfilepath(paramstr(0))+'rss.txt');
+if fileexists(ExtractFilePath(ParamStr(0))+'rss.txt') then
+Memo1.Lines.LoadFromFile(ExtractFilePath(ParamStr(0))+'rss.txt');
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-if Memo1.Lines.Count>0 then Memo1.Lines.SaveToFile(extractfilepath(paramstr(0))+'rss.txt');
+if Memo1.Lines.Count>0 then Memo1.Lines.SaveToFile(ExtractFilePath(ParamStr(0))+'rss.txt');
 if Assigned(SyncList) then SyncList.Free;
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 begin
-ShellExecute(Handle,nil,pchar(pathdownload),nil,nil,SW_SHOWNORMAL);
+ShellExecute(Handle,nil,pchar(PathDownload),nil,nil,SW_SHOWNORMAL);
 end;
 
 procedure TForm1.WMCopyData(var Msg: TWMCopyData);
@@ -360,7 +353,7 @@ end;
 
 procedure TForm1.CheckLinksDownloaded;
 var
-i,j,c:integer; downloaded,rss,links:tstringlist; source:string;
+i,j,c:integer; downloaded,rss,links:TStringList; source:string;
 error:boolean;
 begin
 Form1.Height:=161;
@@ -369,9 +362,9 @@ Memo1.Visible:=false;
 CheckBox1.Enabled:=false;
 Button1.Enabled:=false;
 error:=false;
-downloaded:=tstringlist.create();
-rss:=tstringlist.create();
-links:=tstringlist.create();
+downloaded:=TStringList.Create();
+rss:=TStringList.Create();
+links:=TStringList.Create();
 downloaded.LoadFromFile('downloaded.txt');
 rss.LoadFromFile('rss.txt');
 StatusBar1.SimpleText:=' Этап 1 - Подготовка общего списка';
@@ -387,7 +380,7 @@ ProgressBar1.Position:=0;
 if error=false then begin
 progressbar1.Max:=downloaded.Count-1;
 for j:=downloaded.Count-1 downto 0 do begin
-if pos(downloaded.Strings[j],source)>0 then links.add(downloaded.Strings[j]);
+if pos(downloaded.Strings[j],source)>0 then links.Add(downloaded.Strings[j]);
 application.ProcessMessages;
 progressbar1.Position:=downloaded.Count-1-j;
 end;

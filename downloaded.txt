@@ -64,8 +64,6 @@ http://cdn.echo.msk.ru/snd/2014-05-11-tochka-2107.mp3
 http://cdn.echo.msk.ru/snd/2014-05-20-beseda-2007.mp3
 http://cdn.echo.msk.ru/snd/2014-05-26-my_moscow-1758.mp3
 http://cdn.echo.msk.ru/snd/2014-08-01-razvorot-morning-1008.mp3
-http://cdn.radio-t.com/rt_podcast407.mp3
-http://cdn.radio-t.com/rt_podcast408.mp3
 http://cdn.radio-t.com/rt_podcast409.mp3
 http://cdn.radio-t.com/rt_podcast410.mp3
 http://cdn.radio-t.com/rt_podcast411.mp3
@@ -84,6 +82,8 @@ http://cdn.radio-t.com/rt_podcast423.mp3
 http://cdn.radio-t.com/rt_podcast424.mp3
 http://cdn.radio-t.com/rt_podcast425.mp3
 http://cdn.radio-t.com/rt_podcast426.mp3
+http://cdn.radio-t.com/rt_podcast427.mp3
+http://cdn.radio-t.com/rt_podcast428.mp3
 http://cdn.radio-t.com/rt346post.mp3
 http://cdn.radio-t.com/rt347post.mp3
 http://cdn.radio-t.com/rt349post.mp3
