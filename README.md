@@ -11,6 +11,8 @@ Podcast Easy - Подкаст менеджер.
 
 Обратная связь: r57zone[собака]gmail.com
 
+Программа частично поддерживает [стандарт модульных программ](https://github.com/r57zone/Standard-modular-program).
+
 <h2>EN:</h2>
 Podcast Easy - Podcast Manager.
 Before the first pressing the update after the addition of RSS feeds, you need to remove the check mark from the "Load podcasts." This is to ensure that for the first time do not download all the podcasts from RSS feeds.
@@ -20,3 +22,5 @@ In the file "rss.txt" you need to add the podcast RSS feed. File "downloaded.txt
 [Download the latest version](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)
 
 Feedback: r57zone[dog]gmail.com
+
+The program partially supports [standard modular programs](https://github.com/r57zone/Standard-modular-program).
