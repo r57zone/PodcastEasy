@@ -24,6 +24,6 @@ In the file "rss.txt" you need to add the podcast RSS feed. File "downloaded.txt
 
 **[Download the latest version](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**
 
-**Feedback:** r57zone[dog]gmail.com
+**Feedback:** r57zone[at]gmail.com
 
 The program partially supports [standard modular programs](https://github.com/r57zone/Standard-modular-program).
