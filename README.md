@@ -1,29 +1,23 @@
 <h2>RU:</h2>
 **Podcast Easy** - Подкаст менеджер.
-
 ![podcasteasy](https://cloud.githubusercontent.com/assets/9499881/5703442/f12cf910-9a7f-11e4-9e00-87cc2235537b.png)
-
-Перед первым нажатием кнопки обновить, после добавление RSS лент, необходимо убрать галочку с пункта "Загрузить подкасты". Это необходимо для того чтобы в первый раз не загружались все подкасты из RSS лент. 
-
-В файл "rss.txt" необходимо добавить RSS ленты подкастов. Файл "downloaded.txt" содержит ссылки на загруженные файлы подкастов, для того, чтобы не загрузить их снова. Время от времени необходимо чистить список загруженных файлов, это можно сделать кликнув на статус бар программы.<br>
+При первом запуске введите нужные вам RSS ленты, уберите галочку с опции "Загрузить подкасты" и нажмите обновить. При последующих запусках галочку с опции снимать не нужно.
+<br><br>
+Время от времени, раз в месяц или в два месяца, необходимо очищать базу ссылок на старые подкасты, чтобы поиск новых подкастов не замедлялся, для этого нужно кликнуть на область уведомлений программы (нижняя полоса) и согласиться на удаление.<br><br>
 
 **[Скачать последнюю версию](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**
 
 **Обратная связь:** r57zone[собака]gmail.com
-
 Программа частично поддерживает [стандарт модульных программ](https://github.com/r57zone/Standard-modular-program).
 
 <h2>EN:</h2>
 **Podcast Easy** - Podcast Manager.
-
 ![2](https://cloud.githubusercontent.com/assets/9499881/5962872/6b63de8c-a800-11e4-90a1-9bf031450426.png)
 
-Before the first pressing the update after the addition of RSS feeds, you need to remove the check mark from the "Load podcasts." This is to ensure that for the first time do not download all the podcasts from RSS feeds.
-
-In the file "rss.txt" you need to add the podcast RSS feed. File "downloaded.txt" contains links to downloads of podcasts to not download them again. From time to time it is necessary to clean the list of downloaded files, you can do so by clicking on the status bar of the program. <br>
-
+At the first start enter the dates of your RSS feeds, uncheck the option "Download podcasts" and click update. When you rerun the check from the option should not be removed.
+<br> <br>
+From time to time, once a month or every two months, it is necessary to clean the base of the old links to podcasts, to search for new podcasts do not slow down, it needs to click on the notification area program (lower band) and agree to removal. <br> <br>
 **[Download the latest version](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**
 
 **Feedback:** r57zone[at]gmail.com
-
 The program partially supports [standard modular programs](https://github.com/r57zone/Standard-modular-program).
