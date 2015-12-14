@@ -211,11 +211,11 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-getrss,downloaded,download:TstringList; i,j,n,d:integer;
+getrss,downloaded,download:TStringList; i,j,n,d:integer;
 begin
-getrss:=TstringList.Create;
-downloaded:=TstringList.Create;
-download:=TstringList.Create;
+getrss:=TStringList.Create;
+downloaded:=TStringList.Create;
+download:=TStringList.Create;
 Button1.Enabled:=false;
 Checkbox1.Enabled:=false;
 Memo1.ReadOnly:=true;
@@ -239,7 +239,7 @@ end;
 end;
 if download.Count>0 then begin
 //Standard modular program
-SyncList:=TstringList.Create;
+SyncList:=TStringList.Create;
 SyncList.Add('FILES TO SYNC');
 //end Smp
 for i:=0 to download.Count-1 do begin
@@ -318,10 +318,10 @@ end;
 
 function CustomMessageDialog(mess,title:string; DlgType:TMsgDlgType; buttons:TMsgDlgButtons; Custom:string = ''):integer;
 var
-d: TForm; s:TstringList; i,k:integer;
+d: TForm; s:TStringList; i,k:integer;
 begin
 d:=CreateMessageDialog(mess,DlgType,buttons);
-s:=TstringList.Create;
+s:=TStringList.Create;
 s.Delimiter:=',';
 s.DelimitedText:=Custom;
 if s.Count>0 then begin
@@ -353,7 +353,7 @@ end;
 
 procedure TForm1.CheckLinksDownloaded;
 var
-i,j,c:integer; downloaded,rss,links:TstringList; source:string;
+i,j,c:integer; downloaded,rss,links:TStringList; source:string;
 error:boolean;
 begin
 Form1.Height:=161;
@@ -362,9 +362,9 @@ Memo1.Visible:=false;
 CheckBox1.Enabled:=false;
 Button1.Enabled:=false;
 error:=false;
-downloaded:=TstringList.Create();
-rss:=TstringList.Create();
-links:=TstringList.Create();
+downloaded:=TStringList.Create();
+rss:=TStringList.Create();
+links:=TStringList.Create();
 downloaded.LoadFromFile('downloaded.txt');
 rss.LoadFromFile('rss.txt');
 StatusBar1.SimpleText:=' Этап 1 - Подготовка общего списка';
