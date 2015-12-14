@@ -33,7 +33,7 @@ type
 var
   Form1: TForm1;
   PathDownload:string;
-  SyncList:TstringList;
+  SyncList:TStringList;
   hTargetWnd:hwnd;
   ClickStatusBar:integer;
 
