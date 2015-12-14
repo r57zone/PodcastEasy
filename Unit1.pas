@@ -148,17 +148,17 @@ internet_open_type_preconfig, nil, nil, 0);
 try
 hurl:=InternetOpenURL(hsession, PChar(FileUrl), nil, 0, 0, 0);
 try
-if not FileExists(Path+ExtractFileName(stringReplace(FileUrl, '/', '\', [rfReplaceAll]))) then begin
+if not FileExists(Path+ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]))) then begin
 
-SyncList.Add(Path+ExtractFileName(stringReplace(FileUrl, '/', '\', [rfReplaceAll])));  //Standard modular program
+SyncList.Add(Path+ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll])));  //Standard modular program
 
-AssignFile(f, Path+ExtractFileName(stringReplace(FileUrl, '/', '\', [rfReplaceAll]))) end else begin
+AssignFile(f, Path+ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]))) end else begin
 for i:=1 to 999999 do
-if not FileExists(Path+ExtractFileName(stringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3') then begin
+if not FileExists(Path+ExtractFileName(StringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3') then begin
 
-SyncList.Add(Path+ExtractFileName(stringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3'); //Standard modular program
+SyncList.Add(Path+ExtractFileName(StringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3'); //Standard modular program
 
-AssignFile(f, Path+ExtractFileName(stringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3');
+AssignFile(f, Path+ExtractFileName(StringReplace(copy(FileUrl,1,length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+inttostr(i)+').mp3');
 break;
 end;
 end;
@@ -222,19 +222,19 @@ Memo1.ReadOnly:=true;
 if FileExists(ExtractFilePath(ParamStr(0))+'downloaded.txt') then
 downloaded.LoadFromFile(ExtractFilePath(ParamStr(0))+'downloaded.txt');
 for i:=0 to Memo1.Lines.Count-1 do begin
-getrss.Text:=geturl(Memo1.Lines.strings[i]);
-getrss.Text:=stringReplace(getrss.Text,'<enclosure',#13+'<enclosure',[rfreplaceall]);
-getrss.Text:=stringReplace(getrss.Text,'<pubDate>',#13+'<pubDate>',[rfreplaceall]);
-if pos('<audio src="',getrss.Text)>0 then getrss.Text:=stringReplace(getrss.Text,'<audio src="',#13+'<audio url="',[rfreplaceall]);
+getrss.Text:=geturl(Memo1.Lines.Strings[i]);
+getrss.Text:=StringReplace(getrss.Text,'<enclosure',#13+'<enclosure',[rfreplaceall]);
+getrss.Text:=StringReplace(getrss.Text,'<pubDate>',#13+'<pubDate>',[rfreplaceall]);
+if pos('<audio src="',getrss.Text)>0 then getrss.Text:=StringReplace(getrss.Text,'<audio src="',#13+'<audio url="',[rfreplaceall]);
 StatusBar1.SimpleText:=' Проверка новостных лент : '+inttostr(i+1)+' из '+inttostr(Memo1.Lines.Count);
 if trim(getrss.Text)='' then continue;
 for j:=0 to getrss.Count-1 do
-if pos('.MP3',AnsiUpperCase(getrss.strings[j]))>0 then
-if (pos(copy(getrss.strings[j],pos('URL="',AnsiUpperCase(getrss.strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.strings[j]))-pos('URL="',AnsiUpperCase(getrss.strings[j]))-1),downloaded.Text)=0) and (pos('<GUID',AnsiUpperCase(getrss.strings[j]))=0) and
-(checkurl(copy(getrss.strings[j],pos('URL="',AnsiUpperCase(getrss.strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.strings[j]))-pos('URL="',AnsiUpperCase(getrss.strings[j]))-1))=true) then
-if (pos(copy(getrss.strings[j],pos('URL="',AnsiUpperCase(getrss.strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.strings[j]))-pos('URL="',AnsiUpperCase(getrss.strings[j]))-1),download.Text)=0) then begin
-StatusBar1.SimpleText:=' Найден новый подкаст на '+copy(Memo1.Lines.strings[i],1,20)+'...';
-download.Add(copy(getrss.strings[j],pos('URL="',AnsiUpperCase(getrss.strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.strings[j]))-pos('URL="',AnsiUpperCase(getrss.strings[j]))-1));
+if pos('.MP3',AnsiUpperCase(getrss.Strings[j]))>0 then
+if (pos(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1),downloaded.Text)=0) and (pos('<GUID',AnsiUpperCase(getrss.Strings[j]))=0) and
+(checkurl(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1))=true) then
+if (pos(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1),download.Text)=0) then begin
+StatusBar1.SimpleText:=' Найден новый подкаст на '+copy(Memo1.Lines.Strings[i],1,20)+'...';
+download.Add(copy(getrss.Strings[j],pos('URL="',AnsiUpperCase(getrss.Strings[j]))+5,pos('.MP3',AnsiUpperCase(getrss.Strings[j]))-pos('URL="',AnsiUpperCase(getrss.Strings[j]))-1));
 end;
 end;
 if download.Count>0 then begin
@@ -244,14 +244,14 @@ SyncList.Add('FILES TO SYNC');
 //end Smp
 for i:=0 to download.Count-1 do begin
 StatusBar1.SimpleText:=' Загрузка подкастов : '+IntToStr(i)+' из '+IntToStr(download.Count);
-if CheckBox1.Checked then getinetfile(download.strings[i],PathDownload);
+if CheckBox1.Checked then getinetfile(download.Strings[i],PathDownload);
 application.ProcessMessages;
 end;
 StatusBar1.SimpleText:=' Все подкасты загружены';
 downloaded.Add(download.Text);
 
 for d:=downloaded.Count-1 downto 0 do
-if Length(trim(downloaded.strings[d]))=0 then downloaded.Delete(d);
+if Length(trim(downloaded.Strings[d]))=0 then downloaded.Delete(d);
 downloaded.SaveToFile(ExtractFilePath(ParamStr(0))+'downloaded.txt');
 end else StatusBar1.SimpleText:=' Новых подкастов не найдено';
 if Memo1.Lines.Count>0 then
@@ -272,7 +272,7 @@ begin
 ClickStatusBar:=0;
 Button1.ControlState:=[csFocusing];
 Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'setup.ini');
-PathDownload:=Ini.Readstring('Main','Path',ExtractFilePath(ParamStr(0)));
+PathDownload:=Ini.ReadString('Main','Path',ExtractFilePath(ParamStr(0)));
 Ini.Free;
 Application.Title:=Caption;
 if fileexists(ExtractFilePath(ParamStr(0))+'rss.txt') then
@@ -297,7 +297,7 @@ begin
 if PChar(TWMCopyData(msg).CopyDataStruct.lpData)='YES' then if Assigned(SyncList) then if (SyncList.Count>0) and (hTargetWnd<>0) then SendMessageToHandle(hTargetWnd,SyncList.Text);
 if PChar(TWMCopyData(msg).CopyDataStruct.lpData)='GOOD' then begin
 SyncList.Delete(0);
-for i:=0 to SyncList.Count-1 do if FileExists(SyncList.strings[i]) then DeleteFile(SyncList.strings[i]);
+for i:=0 to SyncList.Count-1 do if FileExists(SyncList.Strings[i]) then DeleteFile(SyncList.Strings[i]);
 FreeAndNil(SyncList);
 StatusBar1.SimpleText:=' Все подкасты загружены на устройство';
 end;
@@ -370,8 +370,8 @@ rss.LoadFromFile('rss.txt');
 StatusBar1.SimpleText:=' Этап 1 - Подготовка общего списка';
 ProgressBar1.Max:=rss.Count-1;
 for i:=rss.Count-1 downto 0 do begin
-if CheckUrl(rss.strings[i])=false then begin error:=true; ShowMessage(rss.strings[i]); break; end;
-source:=source+#13+GetUrl(rss.strings[i]);
+if CheckUrl(rss.Strings[i])=false then begin error:=true; ShowMessage(rss.Strings[i]); break; end;
+source:=source+#13+GetUrl(rss.Strings[i]);
 Application.ProcessMessages;
 progressbar1.Position:=rss.Count-1-i;
 end;
@@ -380,7 +380,7 @@ ProgressBar1.Position:=0;
 if error=false then begin
 progressbar1.Max:=downloaded.Count-1;
 for j:=downloaded.Count-1 downto 0 do begin
-if pos(downloaded.strings[j],source)>0 then links.Add(downloaded.strings[j]);
+if pos(downloaded.Strings[j],source)>0 then links.Add(downloaded.Strings[j]);
 application.ProcessMessages;
 progressbar1.Position:=downloaded.Count-1-j;
 end;
@@ -388,7 +388,7 @@ links.Sort;
 links.SaveToFile('downloaded.txt');
 Showmessage('Удалено ссылок : '+IntToStr(downloaded.Count-links.Count));
 StatusBar1.SimpleText:='';
-end else ShowMessage('Ошибка, лента '+rss.strings[i]+' недоступна. Если она перестала существовать,'+#13#10+'то просто удалите ее из rss.txt и повторите попытку.');
+end else ShowMessage('Ошибка, лента '+rss.Strings[i]+' недоступна. Если она перестала существовать,'+#13#10+'то просто удалите ее из rss.txt и повторите попытку.');
 downloaded.free;
 rss.free;
 links.free;
