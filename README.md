@@ -18,5 +18,7 @@ At the first start enter the dates of your RSS feeds, uncheck the option "Downlo
 From time to time, once a month or every two months, it is necessary to clean the base of the old links to podcasts, to search for new podcasts do not slow down, it needs to click on the notification area program (lower band) and agree to removal. <br> <br>
 **[Download the latest version](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**
 
+If you need a latest program with an English translation, please write to email and I'll will build it soon.
+
 **Feedback:** r57zone[at]gmail.com<br><br>
 The program partially supports [standard modular programs](https://github.com/r57zone/Standard-modular-program).
