@@ -214,8 +214,8 @@ begin
   Button1.Enabled:=false;
   Checkbox1.Enabled:=false;
   Memo1.ReadOnly:=true;
-  if FileExists(ExtractFilePath(ParamStr(0))+'Downloaded.txt') then
-    Downloaded.LoadFromFile(ExtractFilePath(ParamStr(0))+'Downloaded.txt');
+  if FileExists(ExtractFilePath(ParamStr(0))+'downloaded.txt') then
+    Downloaded.LoadFromFile(ExtractFilePath(ParamStr(0))+'downloaded.txt');
   for i:=0 to Memo1.Lines.Count-1 do begin
     GetRss.Text:=GetUrl(Memo1.Lines.Strings[i]);
     GetRss.Text:=StringReplace(GetRss.Text,'<enclosure',#13+'<enclosure',[rfReplaceAll]);
@@ -248,7 +248,7 @@ begin
 
   for d:=Downloaded.Count-1 downto 0 do
     if Length(Trim(Downloaded.Strings[d]))=0 then Downloaded.Delete(d);
-  Downloaded.SaveToFile(ExtractFilePath(ParamStr(0))+'Downloaded.txt');
+  Downloaded.SaveToFile(ExtractFilePath(ParamStr(0))+'downloaded.txt');
 
   end else StatusBar1.SimpleText:=' Новых подкастов не найдено';
 
@@ -344,7 +344,7 @@ begin
   Downloaded:=TStringList.Create();
   Rss:=TStringList.Create();
   Links:=TStringList.Create();
-  Downloaded.LoadFromFile('Downloaded.txt');
+  Downloaded.LoadFromFile('downloaded.txt');
   Rss.LoadFromFile('rss.txt');
   StatusBar1.SimpleText:=' Этап 1 - Подготовка общего списка';
   ProgressBar1.Max:=rss.Count-1;
@@ -364,7 +364,7 @@ begin
       ProgressBar1.Position:=Downloaded.Count-1-j;
     end;
     Links.Sort;
-    Links.SaveToFile('Downloaded.txt');
+    Links.SaveToFile('downloaded.txt');
     Showmessage('Удалено ссылок : '+IntToStr(Downloaded.Count-links.Count));
     StatusBar1.SimpleText:='';
   end else ShowMessage('Ошибка, лента '+rss.Strings[i]+' недоступна. Если она перестала существовать,'+#13#10+'то просто удалите ее из rss.txt и повторите попытку.');
