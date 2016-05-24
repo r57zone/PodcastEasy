@@ -43,8 +43,6 @@ http://cdn.echo.msk.ru/snd/2013-12-23-razbor_poleta-2109.mp3
 http://cdn.echo.msk.ru/snd/2014-03-04-razvorot-1602.mp3
 http://cdn.echo.msk.ru/snd/2014-05-11-tochka-2107.mp3
 http://cdn.echo.msk.ru/snd/2014-05-20-beseda-2007.mp3
-http://cdn.radio-t.com/rt_podcast475.mp3
-http://cdn.radio-t.com/rt_podcast476.mp3
 http://cdn.radio-t.com/rt_podcast477.mp3
 http://cdn.radio-t.com/rt_podcast478.mp3
 http://cdn.radio-t.com/rt_podcast479.mp3
@@ -63,6 +61,8 @@ http://cdn.radio-t.com/rt_podcast491.mp3
 http://cdn.radio-t.com/rt_podcast492.mp3
 http://cdn.radio-t.com/rt_podcast493.mp3
 http://cdn.radio-t.com/rt_podcast494.mp3
+http://cdn.radio-t.com/rt_podcast495.mp3
+http://cdn.radio-t.com/rt_podcast496.mp3
 http://cdn.radio-t.com/rt373post.mp3
 http://cdn.radio-t.com/rt374post.mp3
 http://cdn.radio-t.com/rt377post.mp3
