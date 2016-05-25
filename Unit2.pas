@@ -83,9 +83,10 @@ var
   TempPath: string;
 begin
   TempPath:=BrowseFolderDialog(PChar(ChooseDirectoryTitle));
-  if TempPath<>'' then
-    EditPath.Text:=TempPath
-  else ShowMessage(ChooseDirectoryErrorTitle);
+  if TempPath<>'' then begin
+    if TempPath[Length(TempPath)]<>'\' then TempPath:=TempPath+'\';
+    EditPath.Text:=TempPath;
+  end else ShowMessage(ChooseDirectoryErrorTitle);
 end;
 
 procedure TSettings.FormCreate(Sender: TObject);

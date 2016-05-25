@@ -487,7 +487,7 @@ begin
         6: CheckLinksDownloaded;
       end;
     if ClickStatusBar=2 then begin
-     Application.MessageBox(PChar('PodCast Easy 0.7 beta'+#13#10+AboutLastUpdateTitle+' 24.05.2016'+#13#10+'https://github.com/r57zone/Podcast-Easy-for-Windows'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
+     Application.MessageBox(PChar('PodCast Easy 0.7 beta'+#13#10+AboutLastUpdateTitle+' 26.05.2016'+#13#10+'https://github.com/r57zone/Podcast-Easy-for-Windows'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
      ClickStatusBar:=0;
     end;
   end;
@@ -556,7 +556,7 @@ end;
 
 procedure TMain.SettingsBtnClick(Sender: TObject);
 begin
-Settings.ShowModal;
+  Settings.ShowModal;
 end;
 
 end.
