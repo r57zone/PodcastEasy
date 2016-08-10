@@ -39,16 +39,15 @@ var
   PathDownload, LanguageFile: string;
   SyncList: TStringList;
   hTargetWnd: hWnd;
-  ClickStatusBar: integer;
   DownloadPodcasts, MemoChanged, FirstStart: boolean;
 
   //Язык / Language
-  CheckNewsFeedTitle, OfTitle: string;
+  CheckNewsFeedTitle: string;
   FoundNewPodcastTitle, DownloadPodcastsTitle, PodcastsDownloadedTitle, PodcastsNotFoundTitle: string;
   PodcastsErrorDownloadedTitle: string;
 
-  DeleteOldLinksTitle, DeleteOldLinksCaptionTitle, AboutLastUpdateTitle, AboutCaptionTitle: string;
-  Stage1Title, Stage2Title, DeletedLinksTitle, ErrorDeletedLinks1Title, ErrorDeletedLinks2Title, FirstStartTitle: string;
+  AboutLastUpdateTitle, AboutCaptionTitle: string;
+  Stage1Title, Stage2Title, DeletedLinksTitle, ErrorDeletedLinksTitle, FirstStartTitle: string;
 
   //StandartModularProgram
   PodcastDownloadedToDeviceTitle: string;
@@ -81,17 +80,10 @@ begin
   end;
 end;
 
-function DelHttp(url:string):string;
-begin
-  if Pos('http://',url) > 0 then Delete(url, 1, 7);
-  Result:=Copy(url,1,Pos('/', url)-1);
-  if Result='' then Result:=url;
-end;
-
 function GetUrl(Url: string): string;
 var
   FSession, FConnect ,FRequest: hInternet;
-  FHost, FScript, SRequest: string;
+  FHost, FScript, SRequest, Uri: string;
   Ansi: PAnsiChar;
   Buff: array [0..1023] of Char;
   BytesRead: Cardinal;
@@ -105,10 +97,12 @@ begin
   if Copy(UpperCase(Url),1,8)='HTTPS://' then https:=true;
   Result:='';
 
-  if Copy(UpperCase(Url),1,7)='HTTP://' then  Delete(Url, 1, 7);
+  if Copy(UpperCase(Url),1,7)='HTTP://' then Delete(Url, 1, 7);
   if Copy(UpperCase(Url),1,8)='HTTPS://' then Delete(Url, 1, 8);
 
-  FHost:=DelHttp(Url);
+  Uri:=Url;
+  Uri:=Copy(Uri,1,Pos('/', Uri)-1);
+  FHost:=Uri;
   FScript:=Url;
   Delete(FScript, 1, Pos(FHost, FScript) + Length(FHost));
 
@@ -296,7 +290,7 @@ begin
 
     GetRss.Text:=GetUrl(MemoRssList.Lines.Strings[i]);
 
-    StatusBar1.SimpleText:=' '+CheckNewsFeedTitle+' '+IntToStr(i+1)+' '+OfTitle+' '+IntToStr(MemoRssList.Lines.Count);
+    StatusBar1.SimpleText:=' '+Format(CheckNewsFeedTitle,[i+1, MemoRssList.Lines.Count]);
     if Trim(GetRss.Text)='' then Continue;
 
     //Перенос тега на новую строку / Move tag to new line
@@ -341,7 +335,7 @@ begin
 
     for i:=Download.Count-1 downto 0 do begin
       inc(DownloadIndex);
-      StatusBar1.SimpleText:=' '+DownloadPodcastsTitle+' '+IntToStr(DownloadIndex)+' '+OfTitle+' '+IntToStr(DownloadCount);
+      StatusBar1.SimpleText:=' '+Format(DownloadPodcastsTitle,[DownloadIndex, DownloadCount]);
 
       if DownloadPodcasts then //Разрешение на загрузку / Permission to download
         if DownloadFile(Download.Strings[i],PathDownload)=false then begin //В случае ошибки / If error
@@ -354,7 +348,7 @@ begin
 
     if Error=false then
     StatusBar1.SimpleText:=' '+PodcastsDownloadedTitle else  //Все подкасты загружены // All Podcasts donwloaded
-    StatusBar1.SimpleText:=' '+PodcastsErrorDownloadedTitle+' '+IntToStr(Download.Count)+' '+OfTitle+' '+IntToStr(DownloadCount); //Ошибка загрузки / Error downloaded
+    StatusBar1.SimpleText:=' '+Format(PodcastsErrorDownloadedTitle, [Download.Count, DownloadCount]); //Ошибка загрузки / Error downloaded
 
     //Сохранение ссылок на загруженные подкасты, чтобы не загрузить их снова / Save links to downloaded podcasts to not download them again
     Downloaded.Add(Download.Text);
@@ -390,8 +384,6 @@ procedure TMain.FormCreate(Sender: TObject);
 var
   Ini:TIniFile;
 begin
-  //1 клик сообщение об удалении ссылок, 2 клика сообщение о программе / 1 click message of delete links, 2 click message of about program
-  ClickStatusBar:=0;
   RefreshBtn.ControlState:=[csFocusing];
   DownloadPodcasts:=true;
 
@@ -416,23 +408,19 @@ begin
   OpenFolderBtn.Caption:=Ini.ReadString('Main','ButtonOpenFolder','');
 
   CheckNewsFeedTitle:=Ini.ReadString('Main','CheckNewsFeed','');
-  OfTitle:=Ini.ReadString('Main','Of','');
   FoundNewPodcastTitle:=Ini.ReadString('Main','FoundNewPodcast','');
   DownloadPodcastsTitle:=Ini.ReadString('Main','DownloadPodcasts','');
   PodcastsDownloadedTitle:=Ini.ReadString('Main','PodcastsDownloaded','');
   PodcastsNotFoundTitle:=Ini.ReadString('Main','PodcastsNotFound','');
   PodcastsErrorDownloadedTitle:=Ini.ReadString('Main','PodcastsErrorDownloaded','');
 
-  DeleteOldLinksTitle:=Ini.ReadString('Main','DeleteOldLinks','');
-  DeleteOldLinksCaptionTitle:=Ini.ReadString('Main','DeleteOldLinksCaption','');
   AboutLastUpdateTitle:=Ini.ReadString('Main','AboutLastUpdate','');
   AboutCaptionTitle:=Ini.ReadString('Main','AboutLastUpdate','');
 
   Stage1Title:=Ini.ReadString('Main','Stage1','');
   Stage2Title:=Ini.ReadString('Main','Stage2','');
   DeletedLinksTitle:=Ini.ReadString('Main','DeletedLinks','');
-  ErrorDeletedLinks1Title:=Ini.ReadString('Main','ErrorDeletedLinks1','');
-  ErrorDeletedLinks2Title:=StringReplace(Ini.ReadString('Main','ErrorDeletedLinks2',''),'<BR>',#13#10,[rfReplaceAll]);
+  ErrorDeletedLinksTitle:=StringReplace(Ini.ReadString('Main','ErrorDeletedLinks',''),'<BR>',#13#10,[rfReplaceAll]);
 
   if FirstStart then
     FirstStartTitle:=StringReplace(Ini.ReadString('Other','FirstStart',''),'<BR>',#13#10,[rfReplaceAll]);
@@ -480,17 +468,7 @@ end;
 
 procedure TMain.StatusBar1Click(Sender: TObject);
 begin
-  if RefreshBtn.Enabled then begin
-    inc(ClickStatusBar);
-    if ClickStatusBar=1 then
-      case MessageBox(Handle,PChar(DeleteOldLinksTitle),PChar(DeleteOldLinksCaptionTitle),35) of
-        6: CheckLinksDownloaded;
-      end;
-    if ClickStatusBar=2 then begin
-     Application.MessageBox(PChar('PodCast Easy 0.7 beta'+#13#10+AboutLastUpdateTitle+' 26.05.2016'+#13#10+'https://github.com/r57zone/Podcast-Easy-for-Windows'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
-     ClickStatusBar:=0;
-    end;
-  end;
+  Application.MessageBox(PChar('PodCast Easy 0.8 beta'+#13#10+AboutLastUpdateTitle+' 10.08.2016'+#13#10+'http://r57zone.github.io'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
 end;
 
 procedure TMain.CheckLinksDownloaded;
@@ -499,6 +477,7 @@ var
   Downloaded, Rss, Links: TStringList; Source: string;
   Error: boolean;
 begin
+  if Settings.Showing then Settings.Close;
   Main.ClientHeight:=108;
   ProgressBar1.Visible:=true;
   MemoRssList.Visible:=false;
@@ -532,7 +511,7 @@ begin
     Links.Sort;
     Links.SaveToFile('Downloaded.txt');
     Showmessage(DeletedLinksTitle+' '+IntToStr(Downloaded.Count-links.Count));
-  end else ShowMessage(ErrorDeletedLinks1Title+rss.Strings[i]+ErrorDeletedLinks2Title);
+  end else ShowMessage(Format(ErrorDeletedLinksTitle,[rss.Strings[i]]));
   StatusBar1.SimpleText:='';
   Downloaded.Free;
   Rss.Free;

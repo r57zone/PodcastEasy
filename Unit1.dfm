@@ -100,7 +100,7 @@ object Main: TMain
     Font.Style = []
     ParentFont = False
     ScrollBars = ssBoth
-    TabOrder = 1
+    TabOrder = 2
     OnChange = MemoRssListChange
   end
   object StatusBar1: TStatusBar
@@ -118,7 +118,7 @@ object Main: TMain
     Width = 75
     Height = 25
     Caption = #1047#1072#1075#1088#1091#1079#1082#1080
-    TabOrder = 3
+    TabOrder = 1
     OnClick = OpenFolderBtnClick
   end
   object ProgressBar1: TProgressBar
