@@ -1,5 +1,5 @@
 # Podcast Easy (Ru)
-Приложение для загрузки подкастов. Введите rss ленты и нажмите обновить, чтобы загрузить последние подкасты. Приложение частично поддерживает [стандарт модульных программ](https://github.com/r57zone/Standard-modular-program).
+Приложение для загрузки подкастов. Введите RSS ленты вручную или импортируйте OPML файл и нажмите обновить, чтобы загрузить последние подкасты. Приложение частично поддерживает [стандарт модульных программ](https://github.com/r57zone/Standard-modular-program).
 
 ## Скриншоты
 ![](https://cloud.githubusercontent.com/assets/9499881/17568729/f8ef1a24-5f55-11e6-88b0-5d4a6bfae15c.png)<br>
@@ -17,7 +17,7 @@
 `r57zone[собака]gmail.com`
 
 # Podcast Easy (En)
-Application for download podcasts. Enter rss tape and press update to download the latest podcasts. Application partially support [standard modular programs](https://github.com/r57zone/Standard-modular-program).
+Application for download podcasts. Enter rss feeds manually or import OPML file to download the latest podcasts. Application partially support [standard modular programs](https://github.com/r57zone/Standard-modular-program).
 
 ## Screenshots
 ![](https://cloud.githubusercontent.com/assets/9499881/17568730/f8f1ea92-5f55-11e6-82f4-16410030f2cf.png)<br>
