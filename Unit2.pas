@@ -41,7 +41,7 @@ type
 var
   Settings: TSettings;
   //язык / Language
-  ChooseDirectoryTitle, ChooseDirectoryErrorTitle: string;
+  ChooseDirectoryTitle, ChooseDirectoryErrorTitle, OPMLFileIsSavedTitle: string;
   LanguageCBChanged: boolean;
 
 implementation
@@ -126,6 +126,7 @@ begin
   DownloadPodcastsChk.Caption:=Ini.ReadString('Setup','CheckBoxDownloadPodcasts','');
   ImportBtn.Caption:=Ini.ReadString('Setup','ButtonImport','');
   ExportBtn.Caption:=Ini.ReadString('Setup','ButtonExport','');
+  OPMLFileIsSavedTitle:=Ini.ReadString('Setup','OPMLFileIsSaved','');
   OkBtn.Caption:=Ini.ReadString('Setup','Ok','');
   CancelBtn.Caption:=Ini.ReadString('Setup','Cancel','');
   ChooseDirectoryTitle:=Ini.ReadString('Setup','ChooseDirectory','');
@@ -197,7 +198,7 @@ begin
     OPML.Text:=AnsiToUTF8(OPML.Text);
     OPML.SaveToFile(SaveDialog.FileName);
     OPML.Free;
-    ShowMessage('‘айл OPML сохранен');
+    ShowMessage(OPMLFileIsSavedTitle);
   end;
 end;
 
