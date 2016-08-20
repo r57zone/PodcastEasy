@@ -57,11 +57,8 @@ begin
   if DownloadPodcastsChk.Checked then DownloadPodcasts:=true else DownloadPodcasts:=false;
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'Setup.ini');
   Ini.WriteString('Main','Path',EditPath.Text);
-  if LanguageCBChanged then begin
+  if LanguageCBChanged then
     Ini.WriteString('Main','LanguageFile',LanguageCB.Items.Strings[LanguageCB.ItemIndex]);
-    Ini.WriteInteger('Main','LanguageIndex',LanguageCB.ItemIndex);
-    Ini.WriteBool('Main','FirstStart',true);
-  end;
   Ini.Free;
   Close;
 end;
@@ -103,6 +100,7 @@ procedure TSettings.FormCreate(Sender: TObject);
 var
   Ini: TIniFile;
   SearchRec: TSearchRec;
+  i: integer;
 begin
   if FindFirst(ExtractFilePath(ParamStr(0))+'Languages\*.ini', faAnyFile, SearchRec)=0  then
   repeat
@@ -111,9 +109,10 @@ begin
   FindClose(SearchRec);
   EditPath.Text:=PathDownload;
   LanguageCBChanged:=false;
-  Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'Setup.ini');
-  LanguageCB.ItemIndex:=Ini.ReadInteger('Main','LanguageIndex',0);
-  Ini.Free;
+  LanguageCB.ItemIndex:=0;
+  for i:=0 to LanguageCB.Items.Count-1 do
+  if LanguageCB.Items.Strings[i]=LanguageFile then LanguageCB.ItemIndex:=i;
+
   //язык / Language
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'Languages\'+LanguageFile);
   Caption:=Ini.ReadString('Setup','SettingsCaption','');

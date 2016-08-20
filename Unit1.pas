@@ -58,6 +58,15 @@ uses Unit2;
 
 {$R *.dfm}
 
+function GetLocaleInformation(Flag: Integer): string;
+var
+  pcLCA: array [0..20] of Char;
+begin
+  if GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19)<=0 then
+    pcLCA[0]:=#0;
+  Result:=pcLCA;
+end;
+
 function CheckUrl(Url: string): boolean;
 var
   hSession, hFile, hRequest: hInternet;
@@ -390,8 +399,12 @@ begin
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'Setup.ini');
   PathDownload:=Ini.ReadString('Main','Path',ExtractFilePath(ParamStr(0)));
   FirstStart:=Ini.ReadBool('Main','FirstStart',false);
-  if FirstStart then Ini.WriteBool('Main','FirstStart',false);
-  LanguageFile:=Ini.ReadString('Main','LanguageFile','Language_Ru.ini');
+  if FirstStart then begin
+    Ini.WriteBool('Main','FirstStart',false);
+    if FileExists(ExtractFilePath(ParamStr(0))+'Languages\'+GetLocaleInformation(LOCALE_SENGLANGUAGE)+'.ini') then
+      Ini.WriteString('Main','LanguageFile',GetLocaleInformation(LOCALE_SENGLANGUAGE)+'.ini');
+  end;
+  LanguageFile:=Ini.ReadString('Main','LanguageFile','English.ini');
   Ini.Free;
 
   Application.Title:=Caption;
@@ -468,7 +481,7 @@ end;
 
 procedure TMain.StatusBar1Click(Sender: TObject);
 begin
-  Application.MessageBox(PChar('PodCast Easy 0.8 beta'+#13#10+AboutLastUpdateTitle+' 10.08.2016'+#13#10+'http://r57zone.github.io'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
+  Application.MessageBox(PChar('PodCast Easy 0.8.1 beta'+#13#10+AboutLastUpdateTitle+' 20.08.2016'+#13#10+'http://r57zone.github.io'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
 end;
 
 procedure TMain.CheckLinksDownloaded;
