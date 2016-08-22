@@ -111,7 +111,7 @@ begin
   LanguageCBChanged:=false;
   LanguageCB.ItemIndex:=0;
   for i:=0 to LanguageCB.Items.Count-1 do
-  if LanguageCB.Items.Strings[i]=LanguageFile then LanguageCB.ItemIndex:=i;
+    if LanguageCB.Items.Strings[i]=LanguageFile then LanguageCB.ItemIndex:=i;
 
   //язык / Language
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'Languages\'+LanguageFile);
