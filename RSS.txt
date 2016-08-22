@@ -3,4 +3,3 @@ http://pirates.radio-t.com/atom.xml
 http://echo.msk.ru/guests/818050-echo/rss-audio.xml
 http://echo.msk.ru/guests/806294-echo/rss-audio.xml
 http://echo.msk.ru/guests/10284/rss-audio.xml
-http://echo.msk.ru/guests/267/rss-audio.xml
