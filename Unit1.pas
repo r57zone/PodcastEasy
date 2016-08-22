@@ -93,7 +93,7 @@ end;
 
 function GetUrl(Url: string): string;
 var
-  hSession, hConnect ,hRequest: hInternet;
+  hSession, hConnect, hRequest: hInternet;
   FHost, FScript, SRequest, Uri: string;
   Ansi: PAnsiChar;
   Buff: array [0..1023] of Char;
@@ -161,7 +161,7 @@ end;
 
 function GetUrlSize(const URL: string): integer;
 var
-  hSession, hFile :hInternet;
+  hSession, hFile: hInternet;
   dwBuffer: array[1..20] of char;
   dwBufferLen, dwIndex: DWORD;
 begin
@@ -394,7 +394,7 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 var
-  Ini:TIniFile;
+  Ini: TIniFile;
 begin
   RefreshBtn.ControlState:=[csFocusing];
   DownloadPodcasts:=true;
