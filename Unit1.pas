@@ -75,13 +75,15 @@ var
   res: PChar;
 begin
   Result:=false;
-  hSession:=InternetOpen('InetURL:/1.0',INTERNET_OPEN_TYPE_PRECONFIG, nil,nil,0);
+  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil,nil,0);
   if Assigned(hSession) then begin
-    if Copy(UpperCase(Url),1,8)='HTTPS://' then hFile:=InternetOpenURL(hSession,PChar(Url),nil,0,INTERNET_FLAG_SECURE,0) else
-      hFile:=InternetOpenURL(hSession,PChar(Url),nil,0,INTERNET_FLAG_RELOAD,0);
+    if Copy(UpperCase(Url),1,8)='HTTPS://' then
+      hFile:=InternetOpenURL(hSession, PChar(Url), nil, 0, INTERNET_FLAG_SECURE, 0)
+    else
+      hFile:=InternetOpenURL(hSession, PChar(Url) , nil, 0, INTERNET_FLAG_RELOAD, 0);
     dwIndex:=0;
     dwCodeLen:=10;
-    HttpQueryInfo(hFile, HTTP_QUERY_STATUS_CODE,@dwCode, dwCodeLen, dwIndex);
+    HttpQueryInfo(hFile, HTTP_QUERY_STATUS_CODE, @dwCode, dwCodeLen, dwIndex);
     res:=PChar(@dwCode);
     Result:=(res='200') or (res='302');
     if Assigned(hFile) then InternetCloseHandle(hFile);
@@ -91,7 +93,7 @@ end;
 
 function GetUrl(Url: string): string;
 var
-  FSession, FConnect ,FRequest: hInternet;
+  hSession, hConnect ,hRequest: hInternet;
   FHost, FScript, SRequest, Uri: string;
   Ansi: PAnsiChar;
   Buff: array [0..1023] of Char;
@@ -99,8 +101,7 @@ var
   Res, Len: DWORD;
   https: boolean;
 const
-  CRLF=#13#10;
-  Header='Content-Type: application/x-www-form-urlencoded' + CRLF;
+  Header='Content-Type: application/x-www-form-urlencoded' + #13#10;
 begin
   https:=false;
   if Copy(UpperCase(Url),1,8)='HTTPS://' then https:=true;
@@ -115,44 +116,46 @@ begin
   FScript:=Url;
   Delete(FScript, 1, Pos(FHost, FScript) + Length(FHost));
 
-  FSession:=InternetOpen('DMFR', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
-  if not Assigned(FSession) then Exit;
+  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  if not Assigned(hSession) then Exit;
   try
-    if https then FConnect:=InternetConnect(FSession, PChar(FHost), INTERNET_DEFAULT_HTTPS_PORT, nil,'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0) else
-      FConnect:=InternetConnect(FSession, PChar(FHost), INTERNET_DEFAULT_HTTP_PORT, nil,'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0);
-    if not Assigned(FConnect) then Exit;
+    if https then hConnect:=InternetConnect(hSession, PChar(FHost), INTERNET_DEFAULT_HTTPS_PORT, nil,'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0) else
+      hConnect:=InternetConnect(hSession, PChar(FHost), INTERNET_DEFAULT_HTTP_PORT, nil,'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0);
+    if not Assigned(hConnect) then Exit;
     try
       Ansi:='text/*';
-      if https then FRequest:=HttpOpenRequest(FConnect, 'GET', PChar(FScript), 'HTTP/1.1',nil, @Ansi, INTERNET_FLAG_SECURE, 0) else
-        FRequest:=HttpOpenRequest(FConnect, 'GET', PChar(FScript), 'HTTP/1.1',nil, @Ansi, INTERNET_FLAG_RELOAD, 0);
-      if not Assigned(FConnect) then Exit;
+      if https then
+        hRequest:=HttpOpenRequest(hConnect, 'GET', PChar(FScript), 'HTTP/1.1',nil, @Ansi, INTERNET_FLAG_SECURE, 0)
+      else
+        hRequest:=HttpOpenRequest(hConnect, 'GET', PChar(FScript), 'HTTP/1.1',nil, @Ansi, INTERNET_FLAG_RELOAD, 0);
+      if not Assigned(hConnect) then Exit;
         try
-          if not (HttpAddRequestHeaders(FRequest, Header, Length(Header),HTTP_ADDREQ_FLAG_REPLACE or HTTP_ADDREQ_FLAG_ADD or HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA)) then Exit;
+          if not (HttpAddRequestHeaders(hRequest, Header, Length(Header),HTTP_ADDREQ_FLAG_REPLACE or HTTP_ADDREQ_FLAG_ADD or HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA)) then Exit;
           Len:=0;
           Res:=0;
           SRequest:=' ';
-          HttpQueryInfo(FRequest, HTTP_QUERY_RAW_HEADERS_CRLF or HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
+          HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF or HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
           if Len>0 then begin
             SetLength(SRequest, Len);
-            HttpQueryInfo(FRequest, HTTP_QUERY_RAW_HEADERS_CRLF or
+            HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF or
             HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
           end;
-          if not (HttpSendRequest(FRequest, nil, 0, nil, 0)) then Exit;
+          if not (HttpSendRequest(hRequest, nil, 0, nil, 0)) then Exit;
           FillChar(Buff, SizeOf(Buff), 0);
           repeat
             Application.ProcessMessages;
             Result:=Result+Buff;
             FillChar(Buff, SizeOf(Buff), 0);
-            InternetReadFile(FRequest, @Buff, SizeOf(Buff), BytesRead);
+            InternetReadFile(hRequest, @Buff, SizeOf(Buff), BytesRead);
           until BytesRead=0;
         finally
-          InternetCloseHandle(FRequest);
+          InternetCloseHandle(hRequest);
         end;
     finally
-      InternetCloseHandle(FConnect);
+      InternetCloseHandle(hConnect);
     end;
   finally
-    InternetCloseHandle(FSession);
+    InternetCloseHandle(hSession);
   end;
 end;
 
@@ -163,13 +166,14 @@ var
   dwBufferLen, dwIndex: DWORD;
 begin
   Result:=0;
-  hSession:=InternetOpen('GetUrlSize',INTERNET_OPEN_TYPE_PRECONFIG,nil,nil,0);
+  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)',INTERNET_OPEN_TYPE_PRECONFIG,nil,nil,0);
   if Assigned(hSession) then begin
     if Copy(UpperCase(Url),1,8)='HTTPS://' then hFile:=InternetOpenURL(hSession,PChar(URL),nil,0,INTERNET_FLAG_SECURE,0) else
-      hFile:=InternetOpenURL(hSession,PChar(URL),nil,0,INTERNET_FLAG_RELOAD,0);
+      hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     dwIndex:=0;
     dwBufferLen:=20;
-    if HttpQueryInfo(hFile,HTTP_QUERY_CONTENT_LENGTH,@dwBuffer,dwBufferLen,dwIndex) then Result:=StrToInt(StrPas(@dwBuffer));
+    if HttpQueryInfo(hFile, HTTP_QUERY_CONTENT_LENGTH, @dwBuffer, dwBufferLen, dwIndex) then
+      Result:=StrToInt(StrPas(@dwBuffer));
     if Assigned(hFile) then InternetCloseHandle(hFile);
     InternetCloseHandle(hSession);
   end;
@@ -193,11 +197,10 @@ var
   BufferLen: DWord;
   F: File;
   FileSize, FileExistsCounter: int64;
-  sAppName, cFileName: string;
+  cFileName: string;
 begin
   FileSize:=GetUrlSize(FileUrl);
-  sAppName:=ExtractFileName(Application.ExeName);
-  hSession:=InternetOpen(PChar(sAppName),Internet_Open_Type_Preconfig, nil, nil, 0);
+  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)',Internet_Open_Type_Preconfig, nil, nil, 0);
   if not Assigned(hSession) then Result:=false;
   try
     hUrl:=InternetOpenURL(hSession, PChar(FileUrl), nil, 0, 0, 0);
