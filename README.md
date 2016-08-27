@@ -8,10 +8,8 @@
 ## Загрузка
 >Версия для Windows XP, ReactOS, Windows 7, Windows 8.1, Windows 10.<br>
 **[Загрузить](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**<br>
->Версия для Python 2.7<br>
-**[Загрузить](https://github.com/r57zone/Podcast-Easy-Python-2.7)**<br>
->Версия для Python 3<br>
-**[Загрузить](https://github.com/r57zone/Podcast-Easy-Python-3.x)**<br>
+>Версия для Python<br>
+**[Загрузить](https://github.com/r57zone/Podcast-Easy-for-python)**<br>
 
 ## Обратная связь
 `r57zone[собака]gmail.com`
@@ -26,10 +24,8 @@ Application for download podcasts. Enter rss feeds manually or import OPML file 
 ## Download
 >Version for Windows XP, ReactOS, Windows 7, Windows 8.1, Windows 10.<br>
 **[Download](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**<br>
->Version for Python 2.7<br>
-**[Download](https://github.com/r57zone/Podcast-Easy-Python-2.7)**<br>
->Version for Python 3<br>
-**[Download](https://github.com/r57zone/Podcast-Easy-Python-3.x)**<br>
+>Version for Python<br>
+**[Download](https://github.com/r57zone/Podcast-Easy-for-python)**<br>
 
 ## Feedback
 `r57zone[at]gmail.com`
