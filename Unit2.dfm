@@ -4,8 +4,8 @@ object Settings: TSettings
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
-  ClientHeight = 251
-  ClientWidth = 391
+  ClientHeight = 316
+  ClientWidth = 296
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object Settings: TSettings
   TextHeight = 13
   object OkBtn: TButton
     Left = 8
-    Top = 219
+    Top = 283
     Width = 75
     Height = 25
     Caption = #1054#1082
@@ -28,7 +28,7 @@ object Settings: TSettings
   end
   object CancelBtn: TButton
     Left = 88
-    Top = 219
+    Top = 283
     Width = 75
     Height = 25
     Caption = #1054#1090#1084#1077#1085#1072
@@ -36,10 +36,10 @@ object Settings: TSettings
     OnClick = CancelBtnClick
   end
   object GroupBox1: TGroupBox
-    Left = 296
-    Top = 8
-    Width = 89
-    Height = 89
+    Left = 8
+    Top = 216
+    Width = 281
+    Height = 60
     Caption = 'OPML '
     TabOrder = 2
     object ImportBtn: TButton
@@ -52,8 +52,8 @@ object Settings: TSettings
       OnClick = ImportBtnClick
     end
     object ExportBtn: TButton
-      Left = 6
-      Top = 56
+      Left = 86
+      Top = 24
       Width = 75
       Height = 25
       Caption = #1069#1082#1089#1087#1086#1088#1090

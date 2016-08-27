@@ -39,6 +39,7 @@ http://cdn.radio-t.com/rt_podcast505.mp3
 http://cdn.radio-t.com/rt_podcast506.mp3
 http://cdn.radio-t.com/rt_podcast507.mp3
 http://cdn.radio-t.com/rt_podcast508.mp3
+http://cdn.radio-t.com/rt_podcast509.mp3
 http://cdn.radio-t.com/rt373post.mp3
 http://cdn.radio-t.com/rt374post.mp3
 http://cdn.radio-t.com/rt377post.mp3
@@ -59,4 +60,3 @@ http://cdn.radio-t.com/rt487post.mp3
 http://cdn.radio-t.com/rt490post.mp3
 http://cdn.radio-t.com/rt492post.mp3
 http://cdn.radio-t.com/rt494post.mp3
-http://cdn.radio-t.com/rt_podcast509.mp3

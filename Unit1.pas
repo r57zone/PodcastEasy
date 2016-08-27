@@ -213,7 +213,7 @@ begin
       end else begin
         FileExistsCounter:=1;
         while true do begin
-          cFileName:=ExtractFileName(StringReplace(Copy(FileUrl,1,Length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+IntToStr(FileExistsCounter)+')'+ExtractFileExt(FileUrl);
+          cFileName:=ExtractFileName(StringReplace(Copy(FileUrl, 1, Length(FileUrl)-4), '/', '\', [rfReplaceAll]))+'('+IntToStr(FileExistsCounter)+')'+ExtractFileExt(FileUrl);
           if not FileExists(Path+cFileName) then begin
             SyncList.Add(Path+cFileName); //Standard modular program
             AssignFile(F, Path+cFileName);
@@ -222,7 +222,7 @@ begin
           inc(FileExistsCounter);
         end;
       end;
-      Rewrite(F,1);
+      Rewrite(F, 1);
       repeat
         InternetReadFile(hUrl, @Buffer, SizeOf(Buffer), BufferLen);
         BlockWrite(F, Buffer, BufferLen);
@@ -267,8 +267,8 @@ begin
   while hWndTemp<>0 do begin
     iLenText:=GetWindowText(hWndTemp, cTitletemp, 255);
     sTitleTemp:=cTitletemp;
-    sTitleTemp:=UpperCase(Copy(sTitleTemp, 1, iLenText));
-    PartialTitle:=UpperCase(partialTitle);
+    sTitleTemp:=AnsiUpperCase(Copy(sTitleTemp, 1, iLenText));
+    PartialTitle:=AnsiUpperCase(partialTitle);
     if Pos(partialTitle, sTitleTemp)<>0 then
       Break;
     hWndTemp:=GetWindow(hWndTemp, GW_HWNDNEXT);
@@ -321,14 +321,14 @@ begin
           //Ссылка на mp3 файл / Link to mp3 file
           MyLink:=Copy(GetRss.Strings[j],Pos('URL="',AnsiUpperCase(GetRss.Strings[j]))+5,Pos('.MP3',AnsiUpperCase(GetRss.Strings[j]))-Pos('URL="',AnsiUpperCase(GetRss.Strings[j]))-1);
 
-          if (Copy(UpperCase(MyLink),1,7)='HTTP://') or (Copy(UpperCase(MyLink),1,8)='HTTPS://') then
+          if (Copy(UpperCase(MyLink), 1, 7)='HTTP://') or (Copy(UpperCase(MyLink), 1, 8)='HTTPS://') then
 
             //Проверяем ссылку на наличие в ее списке загруженных подкастов и на возмоможность загрузки / Check presence of link on list of downloaded podcasts and the ability to download
             if (Pos(MyLink,Downloaded.Text)=0) and (CheckUrl(MyLink)=true) then
 
               //Проверяем не добавлена ли она уже в список загрузки / Check if it is added in the download list
               if (Pos(MyLink,Download.Text)=0) then begin
-                StatusBar1.SimpleText:=' '+FoundNewPodcastTitle+' '+Copy(MemoRssList.Lines.Strings[i],1,20)+'...';
+                StatusBar1.SimpleText:=' '+FoundNewPodcastTitle+' '+Copy(MemoRssList.Lines.Strings[i], 1, 20)+'...';
 
                 //Добавление ссылки в список для загрузки / Add link to download list
                 Download.Add(Copy(GetRss.Strings[j],Pos('URL="',AnsiUpperCase(GetRss.Strings[j]))+5,Pos('.MP3',AnsiUpperCase(GetRss.Strings[j]))-Pos('URL="',AnsiUpperCase(GetRss.Strings[j]))-1));
@@ -336,7 +336,7 @@ begin
         end;
   end;
 
-  //Список загрузки / Download list
+  //Загрузка файлов / Download files
   if Download.Count>0 then begin
     //Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
     SyncList:=TStringList.Create;
