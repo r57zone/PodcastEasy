@@ -13,7 +13,7 @@ object Main: TMain
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  Position = poDesktopCenter
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
@@ -103,14 +103,14 @@ object Main: TMain
     TabOrder = 2
     OnChange = MemoRssListChange
   end
-  object StatusBar1: TStatusBar
+  object StatusBar: TStatusBar
     Left = 0
     Top = 143
     Width = 294
     Height = 19
     Panels = <>
     SimplePanel = True
-    OnClick = StatusBar1Click
+    OnClick = StatusBarClick
   end
   object OpenFolderBtn: TButton
     Left = 86

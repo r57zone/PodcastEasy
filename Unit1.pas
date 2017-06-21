@@ -11,7 +11,7 @@ type
   TMain = class(TForm)
     RefreshBtn: TButton;
     MemoRssList: TMemo;
-    StatusBar1: TStatusBar;
+    StatusBar: TStatusBar;
     XPManifest1: TXPManifest;
     OpenFolderBtn: TButton;
     Timer1: TTimer;
@@ -22,7 +22,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure OpenFolderBtnClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
-    procedure StatusBar1Click(Sender: TObject);
+    procedure StatusBarClick(Sender: TObject);
     procedure CheckLinksDownloaded;
     procedure MemoRssListChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -302,7 +302,7 @@ begin
 
     GetRss.Text:=GetUrl(MemoRssList.Lines.Strings[i]);
 
-    StatusBar1.SimpleText:=' '+Format(CheckNewsFeedTitle,[i+1, MemoRssList.Lines.Count]);
+    StatusBar.SimpleText:=' '+Format(CheckNewsFeedTitle,[i+1, MemoRssList.Lines.Count]);
     if Trim(GetRss.Text)='' then Continue;
 
     //Перенос тега на новую строку / Move tag to new line
@@ -328,7 +328,7 @@ begin
 
               //Проверяем не добавлена ли она уже в список загрузки / Check if it is added in the download list
               if (Pos(MyLink,Download.Text)=0) then begin
-                StatusBar1.SimpleText:=' '+FoundNewPodcastTitle+' '+Copy(MemoRssList.Lines.Strings[i], 1, 20)+'...';
+                StatusBar.SimpleText:=' '+FoundNewPodcastTitle+' '+Copy(MemoRssList.Lines.Strings[i], 1, 20)+'...';
 
                 //Добавление ссылки в список для загрузки / Add link to download list
                 Download.Add(Copy(GetRss.Strings[j],Pos('URL="',AnsiUpperCase(GetRss.Strings[j]))+5,Pos('.MP3',AnsiUpperCase(GetRss.Strings[j]))-Pos('URL="',AnsiUpperCase(GetRss.Strings[j]))-1));
@@ -347,7 +347,7 @@ begin
 
     for i:=Download.Count-1 downto 0 do begin
       inc(DownloadIndex);
-      StatusBar1.SimpleText:=' '+Format(DownloadPodcastsTitle,[DownloadIndex, DownloadCount]);
+      StatusBar.SimpleText:=' '+Format(DownloadPodcastsTitle,[DownloadIndex, DownloadCount]);
 
       if DownloadPodcasts then //Разрешение на загрузку / Permission to download
         if DownloadFile(Download.Strings[i],PathDownload)=false then begin //В случае ошибки / If error
@@ -359,8 +359,8 @@ begin
     end;
 
     if Error=false then
-    StatusBar1.SimpleText:=' '+PodcastsDownloadedTitle else  //Все подкасты загружены // All Podcasts donwloaded
-    StatusBar1.SimpleText:=' '+Format(PodcastsErrorDownloadedTitle, [Download.Count, DownloadCount]); //Ошибка загрузки / Error downloaded
+    StatusBar.SimpleText:=' '+PodcastsDownloadedTitle else  //Все подкасты загружены // All Podcasts donwloaded
+    StatusBar.SimpleText:=' '+Format(PodcastsErrorDownloadedTitle, [Download.Count, DownloadCount]); //Ошибка загрузки / Error downloaded
 
     //Сохранение ссылок на загруженные подкасты, чтобы не загрузить их снова / Save links to downloaded podcasts to not download them again
     Downloaded.Add(Download.Text);
@@ -371,7 +371,7 @@ begin
     //Сохранение списка загруженных подкастов / Save list of podcasts downloaded links  
     Downloaded.SaveToFile(ExtractFilePath(ParamStr(0))+'Downloaded.txt');
 
-  end else StatusBar1.SimpleText:=' '+PodcastsNotFoundTitle; //Новых подкастов не найдено / Not found new podcasts
+  end else StatusBar.SimpleText:=' '+PodcastsNotFoundTitle; //Новых подкастов не найдено / Not found new podcasts
 
   //Если редактировались ленты, то сохраняем новый список лент / If edited feeds then save new list feeds
   if MemoChanged then if MemoRssList.Lines.Count>0 then begin
@@ -396,7 +396,7 @@ procedure TMain.FormCreate(Sender: TObject);
 var
   Ini: TIniFile;
 begin
-  RefreshBtn.ControlState:=[csFocusing];
+  //RefreshBtn.ControlState:=[csFocusing];
   DownloadPodcasts:=true;
 
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0))+'Setup.ini');
@@ -466,7 +466,7 @@ begin
     for i:=0 to SyncList.Count-1 do
       if FileExists(SyncList.Strings[i]) then DeleteFile(SyncList.Strings[i]);
     FreeAndNil(SyncList);
-    StatusBar1.SimpleText:=' '+PodcastDownloadedToDeviceTitle;
+    StatusBar.SimpleText:=' '+PodcastDownloadedToDeviceTitle;
   end;
   //SendMessageToHandle(msg.From,'YES');
   Msg.Result:=Integer(True);
@@ -482,9 +482,9 @@ begin
   end;
 end;
 
-procedure TMain.StatusBar1Click(Sender: TObject);
+procedure TMain.StatusBarClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar('PodCast Easy 0.8.1 beta'+#13#10+AboutLastUpdateTitle+' 20.08.2016'+#13#10+'http://r57zone.github.io'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
+  Application.MessageBox(PChar('PodCast Easy 0.8.1 beta'+#13#10+AboutLastUpdateTitle+' 21.06.2017'+#13#10+'https://r57zone.github.io'+#13#10+'r57zone@gmail.com'),PChar(AboutCaptionTitle),0);
 end;
 
 procedure TMain.CheckLinksDownloaded;
@@ -504,7 +504,7 @@ begin
   Links:=TStringList.Create();
   Downloaded.LoadFromFile('Downloaded.txt');
   Rss.LoadFromFile('Rss.txt');
-  StatusBar1.SimpleText:=' '+Stage1Title;
+  StatusBar.SimpleText:=' '+Stage1Title;
   ProgressBar1.Max:=Rss.Count-1;
   //Создание общего списка / Creating a common list
   for i:=Rss.Count-1 downto 0 do begin
@@ -515,7 +515,7 @@ begin
   end;
   ProgressBar1.Position:=0;
   if Error=false then begin
-    StatusBar1.SimpleText:=' '+Stage2Title;
+    StatusBar.SimpleText:=' '+Stage2Title;
     ProgressBar1.Max:=Downloaded.Count-1;
     //Создание нового списка загруженных подкастов /Create a new list of downloaded podcasts
     for j:=Downloaded.Count-1 downto 0 do begin
@@ -528,7 +528,7 @@ begin
     Links.SaveToFile('Downloaded.txt');
     Showmessage(DeletedLinksTitle+' '+IntToStr(Downloaded.Count-links.Count));
   end else ShowMessage(Format(ErrorDeletedLinksTitle,[rss.Strings[i]]));
-  StatusBar1.SimpleText:='';
+  StatusBar.SimpleText:='';
   Downloaded.Free;
   Rss.Free;
   Links.Free;
