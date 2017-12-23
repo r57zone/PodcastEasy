@@ -4,8 +4,8 @@
 Application for download podcasts. Enter rss feeds manually or import OPML file to download the latest podcasts.
 
 ## Screenshots
-![](https://cloud.githubusercontent.com/assets/9499881/17568730/f8f1ea92-5f55-11e6-82f4-16410030f2cf.png)<br>
-![](https://cloud.githubusercontent.com/assets/9499881/17568728/f8ec709e-5f55-11e6-9b58-7c3d7ef342c6.png)
+![](https://user-images.githubusercontent.com/9499881/34322596-7c2eba5c-e844-11e7-9e17-7b9eb17a86a0.PNG)<br>
+![](https://user-images.githubusercontent.com/9499881/34322597-7c4b53ec-e844-11e7-8007-3bdb3b39361b.PNG)
 
 ## Download
 >Version for Windows XP, ReactOS, Windows 7, Windows 8.1, Windows 10.<br>
