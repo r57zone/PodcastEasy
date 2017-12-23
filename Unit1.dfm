@@ -16,14 +16,13 @@ object Main: TMain
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object SettingsBtn: TSpeedButton
-    Left = 268
-    Top = 10
-    Width = 20
-    Height = 20
+    Left = 264
+    Top = 6
+    Width = 25
+    Height = 25
     Flat = True
     Glyph.Data = {
       36060000424D3606000000000000360000002800000020000000100000000100
@@ -88,7 +87,7 @@ object Main: TMain
     TabOrder = 0
     OnClick = RefreshBtnClick
   end
-  object MemoRssList: TMemo
+  object RSSListMemo: TMemo
     Left = 7
     Top = 38
     Width = 281
@@ -101,7 +100,7 @@ object Main: TMain
     ParentFont = False
     ScrollBars = ssBoth
     TabOrder = 2
-    OnChange = MemoRssListChange
+    OnChange = RSSListMemoChange
   end
   object StatusBar: TStatusBar
     Left = 0
@@ -121,23 +120,15 @@ object Main: TMain
     TabOrder = 1
     OnClick = OpenFolderBtnClick
   end
-  object ProgressBar1: TProgressBar
-    Left = 7
-    Top = 38
-    Width = 281
-    Height = 44
-    TabOrder = 4
-    Visible = False
+  object XPManifest: TXPManifest
+    Left = 200
+    Top = 8
   end
-  object XPManifest1: TXPManifest
-    Left = 16
-    Top = 64
-  end
-  object Timer1: TTimer
+  object Timer: TTimer
     Enabled = False
     Interval = 100
-    OnTimer = Timer1Timer
-    Left = 48
-    Top = 64
+    OnTimer = TimerTimer
+    Left = 232
+    Top = 8
   end
 end

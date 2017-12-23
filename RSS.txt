@@ -1,5 +1,1 @@
-http://feeds.rucast.net/radio-t
-http://pirates.radio-t.com/atom.xml
-http://echo.msk.ru/guests/818050-echo/rss-audio.xml
-http://echo.msk.ru/guests/806294-echo/rss-audio.xml
-http://echo.msk.ru/guests/10284/rss-audio.xml
+https://r57zone.github.io/PodcastEasy/feed.xml
