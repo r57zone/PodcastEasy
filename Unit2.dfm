@@ -137,7 +137,7 @@ object Settings: TSettings
     object StatusLbl: TLabel
       Left = 192
       Top = 69
-      Width = 161
+      Width = 3
       Height = 13
     end
     object RemLinksBtn: TButton

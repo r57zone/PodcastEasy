@@ -3,7 +3,7 @@ object Main: TMain
   Top = 124
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'PodCast Easy'
+  Caption = 'Podcast Easy'
   ClientHeight = 162
   ClientWidth = 294
   Color = clBtnFace

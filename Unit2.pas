@@ -99,7 +99,7 @@ begin
       TempPath:=TempPath + '\';
     EditPath.Text:=TempPath;
   end else
-    ShowMessage(ID_CHOOSE_DIR_ERROR);
+    Application.MessageBox(PChar(ID_CHOOSE_DIR_ERROR), PChar(Caption), MB_ICONWARNING);
 end;
 
 procedure TSettings.FormCreate(Sender: TObject);

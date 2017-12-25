@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, WinInet, XPMan, ComCtrls, IniFiles, ShellAPI, ExtCtrls,
-  Buttons;
+  Buttons, RegExpr;
 
 type
   TMain = class(TForm)
@@ -94,7 +94,7 @@ begin
   end;
 end;
 
-function GetUrl(Url: string): string;
+function HTTPGet(Url: string): string;
 var
   hSession, hConnect, hRequest: hInternet;
   FHost, FScript, SRequest, Uri: string;
@@ -107,7 +107,7 @@ const
   Header='Content-Type: application/x-www-form-urlencoded' + #13#10;
 begin
   https:=false;
-  if Copy(LowerCase(Url),1,8) = 'https://' then https:=true;
+  if Copy(LowerCase(Url), 1, 8) = 'https://' then https:=true;
   Result:='';
 
   if Copy(LowerCase(Url), 1, 7) = 'http://' then Delete(Url, 1, 7);
@@ -195,14 +195,13 @@ begin
    FindClose(s);
 end;
 
-function DownloadFile(const FileUrl, Path: string): boolean;
+function DownloadFile(const FileUrl, Path: string; out DownloadedFileName: string): boolean;
 var
   hSession, hUrl: hInternet;
   Buffer: array[0..1023] of Byte;
   BufferLen: DWord;
   F: File;
   FileSize, FileExistsCounter: int64;
-  cFileName: string;
 begin
   FileSize:=GetUrlSize(FileUrl);
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', Internet_Open_Type_Preconfig, nil, nil, 0);
@@ -211,17 +210,16 @@ begin
     hUrl:=InternetOpenURL(hSession, PChar(FileUrl), nil, 0, 0, 0);
     if not Assigned(hUrl) then Result:=false;
     try
-      cFileName:=ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]));
-      if not FileExists(Path + cFileName) then begin
-        SyncList.Add(Path + cFileName);  //Standard modular program
-        AssignFile(F, Path + cFileName);
-      end else begin
+      DownloadedFileName:=ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]));
+      if not FileExists(Path + DownloadedFileName) then
+        AssignFile(F, Path + DownloadedFileName)
+      else begin
         FileExistsCounter:=1;
         while true do begin
-          cFileName:=ExtractFileName(StringReplace(Copy(FileUrl, 1, Length(FileUrl)-4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileUrl);
-          if not FileExists(Path + cFileName) then begin
-            SyncList.Add(Path + cFileName); //Standard modular program
-            AssignFile(F, Path + cFileName);
+          DownloadedFileName:=ExtractFileName(StringReplace(Copy(FileUrl, 1, Length(FileUrl)-4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileUrl);
+          if not FileExists(Path + DownloadedFileName) then begin
+            if Assigned(SyncList) then SyncList.Add(Path + DownloadedFileName); //Standard modular program
+            AssignFile(F, Path + DownloadedFileName);
             Break;
           end;
           inc(FileExistsCounter);
@@ -242,9 +240,9 @@ begin
     InternetCloseHandle(hSession);
   end;
   //Проверка на целостность файла / Checking file integrity
-  if FileSize <> GetFileSize(Path + cFileName) then begin
+  if FileSize <> GetFileSize(Path + DownloadedFileName) then begin
     //Удаляем неполный файл / Delete the incomplete file
-    DeleteFile(Path + cFileName);
+    DeleteFile(Path + DownloadedFileName);
     Result:=false;
   end;
 end;
@@ -282,11 +280,14 @@ begin
 end;
 
 procedure TMain.RefreshBtnClick(Sender: TObject);
+const
+  PodcastsFormats = 'mp3|aac|ogg|mp4';
 var
+  RegExp: TRegExpr;
   GetRss, Downloaded, Download: TStringList;
   i, j, ErrorCount, DownloadCount, DownloadIndex: integer;
   Error: boolean;
-  MyLink: string;
+  DownloadedFileName: string;
 begin
   //Пропуск загрузки новых подкастов для новой ленты / Skip download new podcasts for new feed
   if RSSListChanged then
@@ -295,6 +296,8 @@ begin
       7: DownloadPodcasts:=true;
     end;
 
+  RegExp:=TRegExpr.Create;
+  RegExp.ModifierG:=false; //Не жадный режим / None greedy mode
   Error:=false; //Ошибка загрузки файлов / Error downloaded files
   ErrorCount:=0; //Счетчик неполных файлов / Counter incomplete files
   DownloadCount:=0; //Счетчик файлов на загрузку / Counter files to download
@@ -314,49 +317,53 @@ begin
 
     if Trim(RssListMemo.Lines.Strings[i]) = '' then
       Continue;
-    GetRss.Text:=GetUrl(RssListMemo.Lines.Strings[i]);
+
+    GetRss.Text:=HTTPGet(RssListMemo.Lines.Strings[i]);
 
     StatusBar.SimpleText:=' ' + Format(ID_CHECK_FEED, [i + 1, RssListMemo.Lines.Count]);
     if Trim(GetRss.Text) = '' then
       Continue;
 
-    //Перенос тега на новую строку / Move tag to new line
-    GetRss.Text:=StringReplace(GetRss.Text, '<enclosure', #13 + '<enclosure',[rfReplaceAll]);
-    GetRss.Text:=StringReplace(GetRss.Text, '<pubDate>', #13 + '<pubDate>',[rfReplaceAll]);
+    //Atom, устаревший стандарт / old standard
+    RegExp.Expression:='(?i)<content.*src="(.*(' + PodcastsFormats + '))"';
 
-    //Костыль для старых лент, например, для "http://pirates.radio-t.com/atom.xml" / Сrutch for old feed, example - "http://pirates.radio-t.com/atom.xml"
-    if Pos('<audio src="', GetRss.Text) > 0 then
-      GetRss.Text:=StringReplace(GetRss.Text, '<audio src="', #13 + '<audio url="', [rfReplaceAll]);
+    try
+      if RegExp.Exec(GetRss.Text) then
+        repeat
+          if (Pos(RegExp.Match[1], Download.Text) = 0) and //Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
+          (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  //Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
+          (CheckUrl(RegExp.Match[1])) then begin
+            StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
 
-    for j:=0 to GetRss.Count - 1 do
-      if Pos('.mp3', AnsiLowerCase(GetRss.Strings[j])) > 0 then//Ищем строку с ".mp3" / Look for line with ".mp3"
+            //Добавление ссылки в список для загрузки / Add link to download list
+            Download.Add(RegExp.Match[1]);
+          end;
+        until not RegExp.ExecNext;
+    except
+    end;
 
-        //Проверям строку на наличие тега "<GUID" / Check line for the presence of tag "<GUID"
-        if Pos('<guid', AnsiLowerCase(GetRss.Strings[j])) = 0 then begin
+    //RSS 2.0
+    RegExp.Expression:='(?i)<enclosure.*url="(.*(' + PodcastsFormats + '))"';
 
-          //Ссылка на mp3 файл / Link to mp3 file
-          MyLink:=Copy(GetRss.Strings[j], Pos('url="', AnsiLowerCase(GetRss.Strings[j])) + 5, Pos('.mp3', AnsiLowerCase(GetRss.Strings[j])) - Pos('url="', AnsiLowerCase(GetRss.Strings[j])) - 1);
+    try
+      if RegExp.Exec(GetRss.Text) then
+        repeat
+          if (Pos(RegExp.Match[1], Download.Text) = 0) and //Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
+          (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  //Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
+          (CheckUrl(RegExp.Match[1])) then begin
+            StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
 
-          if (Copy(LowerCase(MyLink), 1, 7)='http://') or (Copy(LowerCase(MyLink), 1, 8) = 'https://') then
+            //Добавление ссылки в список для загрузки / Add link to download list
+            Download.Add(RegExp.Match[1]);
+          end;
+        until not RegExp.ExecNext;
+    except
+    end;
 
-            //Проверяем ссылку на наличие в ее списке загруженных подкастов и на возмоможность загрузки / Check presence of link on list of downloaded podcasts and the ability to download
-            if (Pos(MyLink, Downloaded.Text) = 0) and (CheckUrl(MyLink)) then
-
-              //Проверяем не добавлена ли она уже в список загрузки / Check if it is added in the download list
-              if (Pos(MyLink, Download.Text) = 0) then begin
-                StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' '+ Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
-
-                //Добавление ссылки в список для загрузки / Add link to download list
-                Download.Add(Copy(GetRss.Strings[j], Pos('url="', AnsiLowerCase(GetRss.Strings[j])) + 5, Pos('.mp3', AnsiLowerCase(GetRss.Strings[j])) - Pos('url="', AnsiLowerCase(GetRss.Strings[j])) - 1));
-              end;
-        end;
   end;
 
   //Загрузка файлов / Download files
   if Download.Count > 0 then begin
-    //Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
-    SyncList:=TStringList.Create;
-    SyncList.Add('FILES TO SYNC');
 
     DownloadCount:=Download.Count;
     DownloadIndex:=0;
@@ -366,20 +373,27 @@ begin
       StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount]);
 
       if DownloadPodcasts then //Разрешение на загрузку / Permission to download
-        if DownloadFile(Download.Strings[i], DownloadPath) = false then begin //В случае ошибки / If error
+        if DownloadFile(Download.Strings[i], DownloadPath, DownloadedFileName) = false then begin //В случае ошибки / If error
           Download.Delete(i); //Удаляем из списка на сохранение файл, который не загрузился целиком / Remove from list to save the file, which is not fully downloaded
           Error:=true;
           inc(ErrorCount);
-        end;
+        end else
+          if ModuleWndID <> '' then begin //Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
+            if Assigned(SyncList) = false then begin
+              SyncList:=TStringList.Create;
+              SyncList.Add('FILES TO SYNC');
+            end;
+            SyncList.Add(DownloadPath + DownloadedFileName);
+          end;
       Application.ProcessMessages;
     end;
 
     if Error = false then
-      StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  //Все подкасты загружены // All Podcasts donwloaded
+      StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  //Все подкасты загружены // All Podcasts downloaded
     else
-      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [Download.Count, DownloadCount]); //Ошибка загрузки / Error downloaded
+      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [Download.Count, DownloadCount]); //Ошибка загрузки / Download error
 
-    //Сохранение ссылок на загруженные подкасты, чтобы не загрузить их снова / Save links to downloaded podcasts to not download them again
+    //Сохранение ссылок на загруженные подкасты, чтобы не загружать их снова / Save links to downloaded podcasts to not download them again
     Downloaded.Add(Download.Text);
 
     //Удаляем пустые строки / Remove the blank lines
@@ -403,12 +417,13 @@ begin
   SettingsBtn.Enabled:=true;
 
   //Стандарт модульных программ / Standard modular program
-  if ModuleWndID <> '' then
+  if Assigned(SyncList) then
     Timer.Enabled:=true;
 
   Download.Free;
   GetRss.Free;
   Downloaded.Free;
+  RegExp.Free;
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
@@ -480,7 +495,8 @@ procedure TMain.WMCopyData(var Msg: TWMCopyData);
 var
   i: integer;
 begin
-  if (PChar(TWMCopyData(msg).CopyDataStruct.lpData) = 'YES') and (Assigned(SyncList)) and (SyncList.Count > 0) and (hTargetWnd <> 0) then
+  if (Assigned(SyncList)) and (PChar(TWMCopyData(msg).CopyDataStruct.lpData) = 'YES') and
+  (SyncList.Count > 0) and (hTargetWnd <> 0) then
     SendMessageToHandle(hTargetWnd,SyncList.Text);
 
   if PChar(TWMCopyData(msg).CopyDataStruct.lpData) = 'GOOD' then begin
@@ -507,8 +523,8 @@ end;
 
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar('PodCast Easy 0.9' + #13#10 +
-  ID_LAST_UPDATE + ' 24.12.2017' + #13#10 +
+  Application.MessageBox(PChar(Caption + ' 0.9.1' + #13#10 +
+  ID_LAST_UPDATE + ' 25.12.2017' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
@@ -535,7 +551,7 @@ begin
       Error:=true;
       break;
     end;
-    Source:=Source + #13#10 + GetUrl(RssListMemo.Lines.Strings[i]);
+    Source:=Source + #13#10 + HTTPGet(RssListMemo.Lines.Strings[i]);
     Application.ProcessMessages;
     Settings.ProgressBar.Position:=RssListMemo.Lines.Count - 1 - i;
   end;
