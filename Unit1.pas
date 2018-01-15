@@ -38,6 +38,7 @@ var
   SyncList: TStringList;
   hTargetWnd: hWnd;
   DownloadPodcasts, RSSListChanged: boolean;
+  RSSCount: integer;
 
   //Перевод / Translate
   //Main
@@ -77,7 +78,7 @@ var
   res: PChar;
 begin
   Result:=false;
-  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil,nil,0);
+  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
     if Copy(LowerCase(Url), 1, 8) = 'https://' then
       hFile:=InternetOpenURL(hSession, PChar(Url), nil, 0, INTERNET_FLAG_SECURE, 0)
@@ -216,7 +217,7 @@ begin
       else begin
         FileExistsCounter:=1;
         while true do begin
-          DownloadedFileName:=ExtractFileName(StringReplace(Copy(FileUrl, 1, Length(FileUrl)-4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileUrl);
+          DownloadedFileName:=ExtractFileName(StringReplace(Copy(FileUrl, 1, Length(FileUrl) - 4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileUrl);
           if not FileExists(Path + DownloadedFileName) then begin
             if Assigned(SyncList) then SyncList.Add(Path + DownloadedFileName); //Standard modular program
             AssignFile(F, Path + DownloadedFileName);
@@ -448,6 +449,7 @@ begin
 
   if FileExists(ExtractFilePath(ParamStr(0)) + 'RSS.txt') then
     RssListMemo.Lines.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
+  RSSCount:=RSSListMemo.Lines.Count;
   RSSListChanged:=false;
 
   //Перевод / Translate
@@ -523,8 +525,8 @@ end;
 
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Caption + ' 0.9.1' + #13#10 +
-  ID_LAST_UPDATE + ' 25.12.2017' + #13#10 +
+  Application.MessageBox(PChar(Caption + ' 0.9.2' + #13#10 +
+  ID_LAST_UPDATE + ' 16.01.2018' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
@@ -569,7 +571,7 @@ begin
     Links.Sort;
     Links.SaveToFile('Downloaded.txt');
 
-    Application.MessageBox(PChar(ID_REMOVED_LINKS + ' ' + IntToStr(Downloaded.Count - links.Count)), PChar(Caption), MB_ICONINFORMATION);
+    Application.MessageBox(PChar(ID_REMOVED_LINKS + ' ' + IntToStr(Downloaded.Count - Links.Count)), PChar(Caption), MB_ICONINFORMATION);
   end else
     Application.MessageBox(PChar(Format(ID_REMOVED_LINKS_ERROR, [RSSListMemo.Lines.Strings[i]])), PChar(Caption), MB_ICONWARNING);
   Settings.StatusLbl.Caption:='';
@@ -583,7 +585,8 @@ end;
 
 procedure TMain.RSSListMemoChange(Sender: TObject);
 begin
-  RSSListChanged:=true;
+  if RSSListMemo.Lines.Count > RSSCount then
+    RSSListChanged:=true;
 end;
 
 procedure TMain.SettingsBtnClick(Sender: TObject);
