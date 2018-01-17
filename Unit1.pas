@@ -37,7 +37,7 @@ var
   DownloadPath, LangFile, ModuleWndID: string;
   SyncList: TStringList;
   hTargetWnd: hWnd;
-  DownloadPodcasts, RSSListChanged: boolean;
+  DownloadPodcasts, RSSListChanged, RSSMemoChanged: boolean;
   RSSCount: integer;
 
   //Перевод / Translate
@@ -451,6 +451,7 @@ begin
     RssListMemo.Lines.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
   RSSCount:=RSSListMemo.Lines.Count;
   RSSListChanged:=false;
+  RSSMemoChanged:=false;
 
   //Перевод / Translate
 
@@ -481,7 +482,7 @@ end;
 
 procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if RSSListChanged then
+  if RSSMemoChanged then
     if RssListMemo.Lines.Count > 0 then
       RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
   if Assigned(SyncList) then
@@ -585,6 +586,7 @@ end;
 
 procedure TMain.RSSListMemoChange(Sender: TObject);
 begin
+  RSSMemoChanged:=true;
   if RSSListMemo.Lines.Count > RSSCount then
     RSSListChanged:=true;
 end;
