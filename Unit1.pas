@@ -43,7 +43,7 @@ var
   //Перевод / Translate
   //Main
   ID_NEW_FEED_QUESTION, ID_CHECK_FEED: string;
-  ID_NEW_PODCAST, ID_DOWNLOAD_PODCASTS, ID_PODCASTS_DOWNLOADED, ID_PODCASTS_NOT_FOUND: string;
+  ID_NEW_PODCAST, ID_DOWNLOAD_PODCASTS, ID_PODCASTS_DOWNLOADED, ID_PODCASTS_SKIPPED, ID_PODCASTS_NOT_FOUND: string;
   ID_DOWNLOAD_ERROR: string;
   //About
   ID_ABOUT_TITLE, ID_LAST_UPDATE: string;
@@ -389,9 +389,14 @@ begin
       Application.ProcessMessages;
     end;
 
-    if Error = false then
-      StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  //Все подкасты загружены // All Podcasts downloaded
-    else
+    if Error = false then begin
+
+      if DownloadPodcasts then
+        StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  //Все подкасты загружены // All Podcasts downloaded
+      else
+        StatusBar.SimpleText:=' ' + ID_PODCASTS_SKIPPED;  //Все подкасты пропущены // All Podcasts skipped
+
+    end else
       StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [Download.Count, DownloadCount]); //Ошибка загрузки / Download error
 
     //Сохранение ссылок на загруженные подкасты, чтобы не загружать их снова / Save links to downloaded podcasts to not download them again
@@ -457,14 +462,15 @@ begin
 
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
 
-  RefreshBtn.Caption:=Ini.ReadString('Main', 'ButtonRefresh', '');
-  OpenFolderBtn.Caption:=Ini.ReadString('Main', 'ButtonOpenFolder', '');
+  RefreshBtn.Caption:=Ini.ReadString('Main', 'ID_REFRESH', '');
+  OpenFolderBtn.Caption:=Ini.ReadString('Main', 'ID_DOWNLOADS', '');
 
   ID_NEW_FEED_QUESTION:=Ini.ReadString('Main', 'ID_NEW_FEED_QUESTION', '');
   ID_CHECK_FEED:=Ini.ReadString('Main', 'ID_CHECK_FEED', '');
   ID_NEW_PODCAST:=Ini.ReadString('Main', 'ID_NEW_PODCAST', '');
   ID_DOWNLOAD_PODCASTS:=Ini.ReadString('Main', 'ID_DOWNLOAD_PODCASTS', '');
   ID_PODCASTS_DOWNLOADED:=Ini.ReadString('Main', 'ID_PODCASTS_DOWNLOADED', '');
+  ID_PODCASTS_SKIPPED:=Ini.ReadString('Main', 'ID_PODCASTS_SKIPPED', '');
   ID_PODCASTS_NOT_FOUND:=Ini.ReadString('Main', 'ID_PODCASTS_NOT_FOUND', '');
   ID_DOWNLOAD_ERROR:=Ini.ReadString('Main', 'ID_DOWNLOAD_ERROR', '');
 
@@ -526,8 +532,8 @@ end;
 
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Caption + ' 0.9.2' + #13#10 +
-  ID_LAST_UPDATE + ' 16.01.2018' + #13#10 +
+  Application.MessageBox(PChar(Caption + ' 0.9.3' + #13#10 +
+  ID_LAST_UPDATE + ' 18.02.2018' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
