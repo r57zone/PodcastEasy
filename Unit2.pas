@@ -16,12 +16,10 @@ type
     ImportBtn: TButton;
     ExportBtn: TButton;
     CommonGB: TGroupBox;
-    LngLbl: TLabel;
     DownloadsPathLbl: TLabel;
     EditPath: TEdit;
     ChooseBtn: TButton;
     DownloadPodcastsCB: TCheckBox;
-    LangCB: TComboBox;
     RemLinksBtn: TButton;
     ProgressBar: TProgressBar;
     DownloadedPodcastsDescLbl: TLabel;
@@ -62,7 +60,6 @@ begin
     DownloadPodcasts:=false;
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Setup.ini');
   Ini.WriteString('Main', 'Path', EditPath.Text);
-  Ini.WriteString('Main', 'Language',LangCB.Items.Strings[LangCB.ItemIndex] + '.ini');
   Ini.Free;
   Close;
 end;
@@ -105,25 +102,13 @@ end;
 procedure TSettings.FormCreate(Sender: TObject);
 var
   Ini: TIniFile;
-  SearchRec: TSearchRec;
-  i: integer;
 begin
-  if FindFirst(ExtractFilePath(ParamStr(0)) + 'Languages\*.ini', faAnyFile, SearchRec) = 0  then
-  repeat
-    LangCB.Items.Add(Copy(SearchRec.Name, 1, Length(SearchRec.Name) - 4));
-  until FindNext(SearchRec)<>0;
-  FindClose(SearchRec);
   EditPath.Text:=DownloadPath;
-  LangCB.ItemIndex:=0;
-  for i:=0 to LangCB.Items.Count - 1 do
-    if LangCB.Items.Strings[i] = Copy(LangFile, 1, Length(LangFile) - 4) then
-      LangCB.ItemIndex:=i;
 
   //Перевод / Translate
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
   Caption:=Ini.ReadString('Settings','ID_SETTINGS_TITLE','');
   CommonGB.Caption:=Ini.ReadString('Settings', 'ID_COMMON', '') + ' ';
-  LngLbl.Caption:=Ini.ReadString('Settings', 'ID_LANGUAGE', '');
   DownloadsPathLbl.Caption:=Ini.ReadString('Settings', 'ID_DOWNLOADS_PATH', '');
   ChooseBtn.Caption:=Ini.ReadString('Settings', 'ID_CHOOSE', '');
   DownloadPodcastsCB.Caption:=Ini.ReadString('Settings', 'ID_DOWNLOAD_PODCASTS', '');

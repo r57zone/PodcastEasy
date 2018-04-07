@@ -48,7 +48,7 @@ var
   //About
   ID_ABOUT_TITLE, ID_LAST_UPDATE: string;
   //Remove links
-  ID_STAGE_1, ID_STAGE_2, ID_REMOVED_LINKS, ID_REMOVED_LINKS_ERROR: string;
+  ID_STAGE_1, ID_STAGE_2, ID_REMOVED_LINKS, ID_FAILED_GET_RSS: string;
 
   ID_GUIDE: string;
 
@@ -61,11 +61,11 @@ uses Unit2;
 
 {$R *.dfm}
 
-function GetLocaleInformation(Flag: Integer): string;
+function GetLocaleInformation(flag: integer): string;
 var
-  pcLCA: array [0..20] of Char;
+  pcLCA: array [0..20] of char;
 begin
-  if GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0 then
+  if GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, flag, pcLCA, 19) <= 0 then
     pcLCA[0]:=#0;
   Result:=pcLCA;
 end;
@@ -199,13 +199,13 @@ end;
 function DownloadFile(const FileUrl, Path: string; out DownloadedFileName: string): boolean;
 var
   hSession, hUrl: hInternet;
-  Buffer: array[0..1023] of Byte;
-  BufferLen: DWord;
-  F: File;
+  Buffer: array[0..1023] of byte;
+  BufferLen: DWORD;
+  F: file;
   FileSize, FileExistsCounter: int64;
 begin
   FileSize:=GetUrlSize(FileUrl);
-  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', Internet_Open_Type_Preconfig, nil, nil, 0);
+  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if not Assigned(hSession) then Result:=false;
   try
     hUrl:=InternetOpenURL(hSession, PChar(FileUrl), nil, 0, 0, 0);
@@ -282,7 +282,7 @@ end;
 
 procedure TMain.RefreshBtnClick(Sender: TObject);
 const
-  PodcastsFormats = 'mp3|aac|ogg|mp4';
+  PodcastExt = 'mp3|aac|ogg|mp4';
 var
   RegExp: TRegExpr;
   GetRss, Downloaded, Download: TStringList;
@@ -326,7 +326,7 @@ begin
       Continue;
 
     //Atom, устаревший стандарт / old standard
-    RegExp.Expression:='(?i)<content.*src="(.*(' + PodcastsFormats + '))"';
+    RegExp.Expression:='(?i)<content.*src="(.*(' + PodcastExt + '))"';
 
     try
       if RegExp.Exec(GetRss.Text) then
@@ -344,7 +344,7 @@ begin
     end;
 
     //RSS 2.0
-    RegExp.Expression:='(?i)<enclosure.*url="(.*(' + PodcastsFormats + '))"';
+    RegExp.Expression:='(?i)<enclosure.*url="(.*(' + PodcastExt + '))"';
 
     try
       if RegExp.Exec(GetRss.Text) then
@@ -411,11 +411,11 @@ begin
   end else StatusBar.SimpleText:=' ' + ID_PODCASTS_NOT_FOUND; //Новых подкастов не найдено / Not found new podcasts
 
   //Если редактировались ленты, то сохраняем новый список лент / If edited feeds then save new list feeds
-  if RSSListChanged then
-    if RssListMemo.Lines.Count > 0 then begin
-      RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
-      RSSListChanged:=false;
-    end;
+  if RSSListChanged then begin
+    RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
+    RSSCount:=RSSListMemo.Lines.Count;
+    RSSListChanged:=false;
+  end;
 
   //Включение кнопок / Enable buttons
   RefreshBtn.Enabled:=true;
@@ -441,12 +441,6 @@ begin
 
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Setup.ini');
   DownloadPath:=Ini.ReadString('Main', 'Path', ExtractFilePath(ParamStr(0)));
-  if Ini.ReadBool('Main', 'FirstStart', false) then begin
-    Ini.WriteBool('Main', 'FirstStart', false);
-    if FileExists(ExtractFilePath(ParamStr(0)) + 'Languages\' + GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini') then
-      Ini.WriteString('Main', 'Language', GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini');
-  end;
-  LangFile:=Ini.ReadString('Main', 'Language', 'English.ini');
   ModuleWndID:=Ini.ReadString('Main', 'ModuleWndID', '');
   Ini.Free;
 
@@ -459,6 +453,11 @@ begin
   RSSMemoChanged:=false;
 
   //Перевод / Translate
+
+  if FileExists(ExtractFilePath(ParamStr(0)) + 'Languages\' + GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini') then
+    LangFile:=GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini'
+  else
+    LangFile:='English.ini';
 
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
 
@@ -480,7 +479,7 @@ begin
   ID_STAGE_1:=Ini.ReadString('Main', 'ID_STAGE_1', '');
   ID_STAGE_2:=Ini.ReadString('Main', 'ID_STAGE_2', '');
   ID_REMOVED_LINKS:=Ini.ReadString('Main', 'ID_REMOVED_LINKS', '');
-  ID_REMOVED_LINKS_ERROR:=StringReplace(Ini.ReadString('Main', 'ID_REMOVED_LINKS_ERROR', ''), '\n', #13#10, [rfReplaceAll]);
+  ID_FAILED_GET_RSS:=StringReplace(Ini.ReadString('Main', 'ID_FAILED_GET_RSS', ''), '\n', #13#10, [rfReplaceAll]);
 
   ID_UPLOADED_PODCASTS_TO_DEVICE:=Ini.ReadString('Main', 'ID_UPLOADED_PODCASTS_TO_DEVICE', '');
   Ini.Free;
@@ -489,8 +488,7 @@ end;
 procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if RSSMemoChanged then
-    if RssListMemo.Lines.Count > 0 then
-      RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
+    RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
   if Assigned(SyncList) then
     SyncList.Free;
 end;
@@ -532,8 +530,8 @@ end;
 
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Caption + ' 0.9.3' + #13#10 +
-  ID_LAST_UPDATE + ' 18.02.2018' + #13#10 +
+  Application.MessageBox(PChar(Caption + ' 0.9.4' + #13#10 +
+  ID_LAST_UPDATE + ' 07.04.2018' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
@@ -580,7 +578,7 @@ begin
 
     Application.MessageBox(PChar(ID_REMOVED_LINKS + ' ' + IntToStr(Downloaded.Count - Links.Count)), PChar(Caption), MB_ICONINFORMATION);
   end else
-    Application.MessageBox(PChar(Format(ID_REMOVED_LINKS_ERROR, [RSSListMemo.Lines.Strings[i]])), PChar(Caption), MB_ICONWARNING);
+    Application.MessageBox(PChar(Format(ID_FAILED_GET_RSS, [RSSListMemo.Lines.Strings[i]])), PChar(Caption), MB_ICONWARNING);
   Settings.StatusLbl.Caption:='';
   Downloaded.Free;
   Links.Free;

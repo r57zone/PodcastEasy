@@ -4,7 +4,7 @@ object Settings: TSettings
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
-  ClientHeight = 301
+  ClientHeight = 245
   ClientWidth = 376
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object Settings: TSettings
   TextHeight = 13
   object OkBtn: TButton
     Left = 8
-    Top = 267
+    Top = 211
     Width = 75
     Height = 25
     Caption = #1054#1082
@@ -29,7 +29,7 @@ object Settings: TSettings
   end
   object CancelBtn: TButton
     Left = 88
-    Top = 267
+    Top = 211
     Width = 75
     Height = 25
     Caption = #1054#1090#1084#1077#1085#1072
@@ -40,7 +40,7 @@ object Settings: TSettings
     Left = 280
     Top = 8
     Width = 89
-    Height = 145
+    Height = 89
     Caption = 'OPML '
     TabOrder = 2
     object ImportBtn: TButton
@@ -66,63 +66,47 @@ object Settings: TSettings
     Left = 8
     Top = 8
     Width = 265
-    Height = 145
+    Height = 89
     Caption = #1054#1073#1097#1080#1077' '
     TabOrder = 0
-    object LngLbl: TLabel
-      Left = 8
-      Top = 24
-      Width = 34
-      Height = 13
-      Caption = #1071#1079#1099#1082' :'
-    end
     object DownloadsPathLbl: TLabel
       Left = 8
-      Top = 72
+      Top = 24
       Width = 153
       Height = 13
       Caption = #1055#1091#1090#1100' '#1076#1083#1103' '#1079#1072#1075#1088#1091#1079#1082#1080' '#1087#1086#1076#1082#1072#1089#1090#1086#1074':'
     end
     object EditPath: TEdit
       Left = 7
-      Top = 88
+      Top = 40
       Width = 170
       Height = 21
       ReadOnly = True
-      TabOrder = 1
+      TabOrder = 0
     end
     object ChooseBtn: TButton
       Left = 182
-      Top = 88
+      Top = 40
       Width = 75
       Height = 21
       Caption = #1042#1099#1073#1088#1072#1090#1100
-      TabOrder = 2
+      TabOrder = 1
       OnClick = ChooseBtnClick
     end
     object DownloadPodcastsCB: TCheckBox
       Left = 8
-      Top = 120
+      Top = 64
       Width = 128
       Height = 17
       Caption = #1047#1072#1075#1088#1091#1078#1072#1090#1100' '#1087#1086#1076#1082#1072#1089#1090#1099
       Checked = True
       State = cbChecked
-      TabOrder = 3
-    end
-    object LangCB: TComboBox
-      Left = 8
-      Top = 40
-      Width = 145
-      Height = 21
-      Style = csDropDownList
-      ItemHeight = 13
-      TabOrder = 0
+      TabOrder = 2
     end
   end
   object DownloadedPodcastsGB: TGroupBox
     Left = 8
-    Top = 160
+    Top = 104
     Width = 361
     Height = 100
     Caption = #1047#1072#1075#1088#1091#1078#1077#1085#1085#1099#1077' '#1087#1086#1076#1082#1072#1089#1090#1099' '
