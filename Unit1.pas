@@ -37,8 +37,7 @@ var
   DownloadPath, LangFile, ModuleWndID: string;
   SyncList: TStringList;
   hTargetWnd: hWnd;
-  DownloadPodcasts, RSSListChanged, RSSMemoChanged: boolean;
-  RSSCount: integer;
+  DownloadPodcasts, RSSMemoChanged: boolean;
 
   //Перевод / Translate
   //Main
@@ -291,7 +290,7 @@ var
   DownloadedFileName: string;
 begin
   //Пропуск загрузки новых подкастов для новой ленты / Skip download new podcasts for new feed
-  if RSSListChanged then
+  if RSSMemoChanged then
     case MessageBox(Handle, PChar(StringReplace(ID_NEW_FEED_QUESTION, '\n', #13#10, [rfReplaceAll])), PChar(Caption), MB_YESNO + MB_ICONQUESTION) of
       6: DownloadPodcasts:=false;
       7: DownloadPodcasts:=true;
@@ -410,13 +409,6 @@ begin
 
   end else StatusBar.SimpleText:=' ' + ID_PODCASTS_NOT_FOUND; //Новых подкастов не найдено / Not found new podcasts
 
-  //Если редактировались ленты, то сохраняем новый список лент / If edited feeds then save new list feeds
-  if RSSListChanged then begin
-    RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
-    RSSCount:=RSSListMemo.Lines.Count;
-    RSSListChanged:=false;
-  end;
-
   //Включение кнопок / Enable buttons
   RefreshBtn.Enabled:=true;
   RssListMemo.ReadOnly:=false;
@@ -448,12 +440,9 @@ begin
 
   if FileExists(ExtractFilePath(ParamStr(0)) + 'RSS.txt') then
     RssListMemo.Lines.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
-  RSSCount:=RSSListMemo.Lines.Count;
-  RSSListChanged:=false;
   RSSMemoChanged:=false;
 
   //Перевод / Translate
-
   if FileExists(ExtractFilePath(ParamStr(0)) + 'Languages\' + GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini') then
     LangFile:=GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini'
   else
@@ -530,8 +519,8 @@ end;
 
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Caption + ' 0.9.4' + #13#10 +
-  ID_LAST_UPDATE + ' 07.04.2018' + #13#10 +
+  Application.MessageBox(PChar(Caption + ' 0.9.5' + #13#10 +
+  ID_LAST_UPDATE + ' 26.04.2018' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
@@ -591,8 +580,6 @@ end;
 procedure TMain.RSSListMemoChange(Sender: TObject);
 begin
   RSSMemoChanged:=true;
-  if RSSListMemo.Lines.Count > RSSCount then
-    RSSListChanged:=true;
 end;
 
 procedure TMain.SettingsBtnClick(Sender: TObject);
