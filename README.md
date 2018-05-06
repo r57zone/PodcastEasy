@@ -9,7 +9,7 @@
 ## Загрузка
 >Версия для Windows XP, Windows 7, Windows 8.1, Windows 10.<br>
 **[Загрузить](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**<br>
->Версия для Python<br>
+>Версия для Python и QPython (Android)<br>
 **[Загрузить](https://github.com/r57zone/Podcast-Easy-for-python)**<br>
 
 ## Обратная связь
