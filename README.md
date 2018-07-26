@@ -4,7 +4,7 @@
 Приложение для загрузки подкастов. Введите RSS ленты вручную или импортируйте OPML файл и нажмите обновить, чтобы загрузить последние подкасты.
 
 ## Скриншоты
-![](https://user-images.githubusercontent.com/9499881/34322592-61266070-e844-11e7-900d-52f182fe70dd.PNG)
+![](https://user-images.githubusercontent.com/9499881/43281249-45db3712-9124-11e8-84f0-69d508b30764.PNG)
 
 ## Загрузка
 >Версия для Windows XP, Windows 7, Windows 8.1, Windows 10.<br>
