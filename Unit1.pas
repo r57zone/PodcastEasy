@@ -520,7 +520,7 @@ end;
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
   Application.MessageBox(PChar(Caption + ' 0.9.5' + #13#10 +
-  ID_LAST_UPDATE + ' 26.07.2018' + #13#10 +
+  ID_LAST_UPDATE + ' 28.07.2018' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;

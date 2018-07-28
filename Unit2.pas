@@ -136,23 +136,22 @@ var
   OPML:TStringList; i, countAdded:integer; rssLink:string;
 begin
   if OpenDialog.Execute then begin
-  countAdded:=0;
-  OPML:=TStringList.Create;
-  OPML.LoadFromFile(OpenDialog.FileName);
-  for i:=0 to OPML.Count-1 do
-    if Pos('xmlUrl="',OPML.Strings[i]) > 0 then begin
-      rssLink:=OPML.Strings[i];
-      delete(rssLink, 1, Pos('xmlUrl="', rssLink) + 7);
-      delete(rssLink, Pos('"', rssLink), Length(rssLink));
-      if (Copy(LowerCase(rssLink), 1, 7)='http://') or (Copy(LowerCase(rssLink), 1, 8)='https://') then
-        if Pos(rssLink,Main.RSSListMemo.Text) = 0 then begin
-          Main.RSSListMemo.Lines.Add(rssLink);
-          Inc(countAdded);
-        end;
-    end;
-  OPML.Free;
-  if countAdded = 0 then
-    ShowMessage(ID_ADDED_OPML_FEED + IntToStr(countAdded));
+    countAdded:=0;
+    OPML:=TStringList.Create;
+    OPML.LoadFromFile(OpenDialog.FileName);
+    for i:=0 to OPML.Count - 1 do
+      if Pos('xmlUrl="',OPML.Strings[i]) > 0 then begin
+        rssLink:=OPML.Strings[i];
+        delete(rssLink, 1, Pos('xmlUrl="', rssLink) + 7);
+        delete(rssLink, Pos('"', rssLink), Length(rssLink));
+        if (Copy(LowerCase(rssLink), 1, 7)='http://') or (Copy(LowerCase(rssLink), 1, 8)='https://') then
+          if Pos(rssLink, Main.RSSListMemo.Text) = 0 then begin
+            Main.RSSListMemo.Lines.Add(rssLink);
+            Inc(countAdded);
+          end;
+      end;
+    OPML.Free;
+    Application.MessageBox(PChar(ID_ADDED_OPML_FEED + ' ' +  IntToStr(countAdded)), PChar(Caption), MB_ICONINFORMATION);
   end;
 end;
 
@@ -184,7 +183,7 @@ begin
     OPML.Text:=AnsiToUTF8(OPML.Text);
     OPML.SaveToFile(SaveDialog.FileName);
     OPML.Free;
-    ShowMessage(ID_OPML_FILE_SAVED);
+    Application.MessageBox(PChar(ID_OPML_FILE_SAVED), PChar(Caption), MB_ICONINFORMATION);
   end;
 end;
 
