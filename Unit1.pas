@@ -37,7 +37,7 @@ var
   DownloadPath, LangFile, ModuleWndID: string;
   SyncList: TStringList;
   hTargetWnd: hWnd;
-  DownloadPodcasts, RSSMemoChanged: boolean;
+  DownloadPodcasts, RssChanged: boolean;
 
   //Перевод / Translate
   //Main
@@ -60,223 +60,225 @@ uses Unit2;
 
 {$R *.dfm}
 
-function GetLocaleInformation(flag: integer): string;
+procedure WriteLog(Str: string);
+const
+  LogWrite = true;
+  LogFileName = 'log.txt';
 var
-  pcLCA: array [0..20] of char;
+  F: TextFile;
 begin
-  if GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, flag, pcLCA, 19) <= 0 then
+  if not LogWrite then
+    Exit;
+  AssignFile(F, ExtractFilePath(ParamStr(0)) + LogFileName);
+  if FileExists(ExtractFilePath(ParamStr(0)) + LogFileName) then
+    Append(F)
+  else
+    Rewrite(F);
+  Writeln(F, Str);
+  CloseFile(F);
+end;
+
+function GetLocaleInformation(Flag: integer): string;
+var
+  pcLCA: array [0..20] of Char;
+begin
+  if GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0 then
     pcLCA[0]:=#0;
   Result:=pcLCA;
 end;
 
-function CheckUrl(Url: string): boolean;
+function CheckUrl(const URL: string): boolean;
 var
-  hSession, hFile, hRequest: hInternet;
-  dwIndex, dwCodeLen: dword;
-  dwCode: array [1..20] of char;
-  res: PChar;
+  hSession, hUrl: HINTERNET;
+  dwIndex, dwCodeLen, dwFlags: DWORD;
+  dwCode: array [1..20] of Char;
 begin
   Result:=false;
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
-    if Copy(LowerCase(Url), 1, 8) = 'https://' then
-      hFile:=InternetOpenURL(hSession, PChar(Url), nil, 0, INTERNET_FLAG_SECURE, 0)
+  
+    if Copy(LowerCase(URL), 1, 8) = 'https://' then
+      dwFlags:=INTERNET_FLAG_SECURE
     else
-      hFile:=InternetOpenURL(hSession, PChar(Url) , nil, 0, INTERNET_FLAG_RELOAD, 0);
-    dwIndex:=0;
-    dwCodeLen:=10;
-    HttpQueryInfo(hFile, HTTP_QUERY_STATUS_CODE, @dwCode, dwCodeLen, dwIndex);
-    res:=PChar(@dwCode);
-    Result:=(res='200') or (res='302');
-    if Assigned(hFile) then
-      InternetCloseHandle(hFile);
+      dwFlags:=INTERNET_FLAG_RELOAD;
+
+    hUrl:=InternetOpenURL(hSession, PChar(URL), nil, 0, dwFlags, 0);
+    if Assigned(hUrl) then begin
+      dwIndex:=0;
+      dwCodeLen:=10;
+      if HttpQueryInfo(hUrl, HTTP_QUERY_STATUS_CODE, @dwCode, dwCodeLen, dwIndex) then
+        Result:=(PChar(@dwCode) = IntToStr(HTTP_STATUS_OK)) or (PChar(@dwCode) = IntToStr(HTTP_STATUS_REDIRECT));
+      InternetCloseHandle(hUrl);
+    end;
+
     InternetCloseHandle(hSession);
   end;
 end;
 
-function HTTPGet(Url: string): string;
+function HTTPGet(URL: string): string;
 var
-  hSession, hConnect, hRequest: hInternet;
-  FHost, FScript, SRequest, Uri: string;
-  Ansi: PAnsiChar;
-  Buff: array [0..1023] of Char;
-  BytesRead: Cardinal;
-  Res, Len: DWORD;
-  https: boolean;
-const
-  Header='Content-Type: application/x-www-form-urlencoded' + #13#10;
+  hSession, hUrl: HINTERNET;
+  Buffer: array [0..1023] of Byte;
+  dwFlags, BufferLen: DWORD;
+  StrStream: TStringStream;
 begin
-  https:=false;
-  if Copy(LowerCase(Url), 1, 8) = 'https://' then https:=true;
   Result:='';
-
-  if Copy(LowerCase(Url), 1, 7) = 'http://' then Delete(Url, 1, 7);
-  if Copy(LowerCase(Url), 1, 8) = 'https://' then Delete(Url, 1, 8);
-
-  Uri:=Url;
-  Uri:=Copy(Uri, 1, Pos('/', Uri) - 1);
-  FHost:=Uri;
-  FScript:=Url;
-  Delete(FScript, 1, Pos(FHost, FScript) + Length(FHost));
-
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
-  if not Assigned(hSession) then exit;
-  try
-    if https then hConnect:=InternetConnect(hSession, PChar(FHost), INTERNET_DEFAULT_HTTPS_PORT, nil,'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0) else
-      hConnect:=InternetConnect(hSession, PChar(FHost), INTERNET_DEFAULT_HTTP_PORT, nil, 'HTTP/1.0', INTERNET_SERVICE_HTTP, 0, 0);
-    if not Assigned(hConnect) then exit;
-    try
-      Ansi:='text/*';
-      if https then
-        hRequest:=HttpOpenRequest(hConnect, 'GET', PChar(FScript), 'HTTP/1.1', nil, @Ansi, INTERNET_FLAG_SECURE, 0)
-      else
-        hRequest:=HttpOpenRequest(hConnect, 'GET', PChar(FScript), 'HTTP/1.1', nil, @Ansi, INTERNET_FLAG_RELOAD, 0);
-      if not Assigned(hConnect) then Exit;
-        try
-          if not (HttpAddRequestHeaders(hRequest, Header, Length(Header), HTTP_ADDREQ_FLAG_REPLACE or HTTP_ADDREQ_FLAG_ADD or HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA)) then
-            exit;
-          Len:=0;
-          Res:=0;
-          SRequest:=' ';
-          HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF or HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
-          if Len > 0 then begin
-            SetLength(SRequest, Len);
-            HttpQueryInfo(hRequest, HTTP_QUERY_RAW_HEADERS_CRLF or HTTP_QUERY_FLAG_REQUEST_HEADERS, @SRequest[1], Len, Res);
-          end;
-          if not (HttpSendRequest(hRequest, nil, 0, nil, 0)) then
-            exit;
-          FillChar(Buff, SizeOf(Buff), 0);
-          repeat
-            Application.ProcessMessages;
-            Result:=Result + Buff;
-            FillChar(Buff, SizeOf(Buff), 0);
-            InternetReadFile(hRequest, @Buff, SizeOf(Buff), BytesRead);
-          until BytesRead = 0;
-        finally
-          InternetCloseHandle(hRequest);
-        end;
-    finally
-      InternetCloseHandle(hConnect);
+  if Assigned(hSession) then begin
+
+    if Copy(LowerCase(URL), 1, 8) = 'https://' then
+      dwFlags:=INTERNET_FLAG_SECURE
+    else
+      dwFlags:=INTERNET_FLAG_RELOAD;
+
+    hUrl:=InternetOpenUrl(hSession, PChar(URL), nil, 0, dwFlags, 0);
+    if Assigned(hUrl) then begin
+      StrStream:=TStringStream.Create('');
+      try
+        repeat
+          FillChar(Buffer, SizeOf(Buffer), 0);
+          BufferLen:=0;
+          if InternetReadFile(hURL, @Buffer, SizeOf(Buffer), BufferLen) then
+            StrStream.WriteBuffer(Buffer, BufferLen)
+          else
+            Break;
+        until BufferLen = 0;
+        Result:=StrStream.DataString;
+      except
+        Result:='';
+      end;
+      StrStream.Free;
+
+      InternetCloseHandle(hUrl);
     end;
-  finally
+
     InternetCloseHandle(hSession);
   end;
 end;
 
 function GetUrlSize(const URL: string): integer;
 var
-  hSession, hFile: hInternet;
-  dwBuffer: array[1..20] of char;
-  dwBufferLen, dwIndex: DWORD;
+  hSession, hFile: HINTERNET;
+  dwBuffer: array[1..20] of Char;
+  dwIndex, dwBufferLen, dwFlags: DWORD;
 begin
   Result:=0;
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
-    if Copy(LowerCase(Url), 1, 8) = 'https://' then
-      hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, INTERNET_FLAG_SECURE, 0)
+
+    if Copy(LowerCase(URL), 1, 8) = 'https://' then
+      dwFlags:=INTERNET_FLAG_SECURE
     else
-      hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, INTERNET_FLAG_RELOAD, 0);
-    dwIndex:=0;
-    dwBufferLen:=20;
-    if HttpQueryInfo(hFile, HTTP_QUERY_CONTENT_LENGTH, @dwBuffer, dwBufferLen, dwIndex) then
-      Result:=StrToInt(StrPas(@dwBuffer));
-    if Assigned(hFile) then
+      dwFlags:=INTERNET_FLAG_RELOAD;
+
+    hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, dwFlags, 0);
+    if Assigned(hFile) then begin
+      dwIndex:=0;
+      dwBufferLen:=20;
+      if HttpQueryInfo(hFile, HTTP_QUERY_CONTENT_LENGTH, @dwBuffer, dwBufferLen, dwIndex) then
+        Result:=StrToInt(StrPas(@dwBuffer));
+
       InternetCloseHandle(hFile);
+    end;
+
     InternetCloseHandle(hSession);
   end;
 end;
 
 function GetFileSize(const FileName: string): int64;
 var
-  s: TSearchRec;
+  FoundData: TSearchRec;
 begin
-   FindFirst(FileName, faAnyFile, s);
-   Result:=(int64(s.FindData.nFileSizeHigh) * MAXDWORD) + int64(s.FindData.nFileSizeLow);
-   FindClose(s);
+  FindFirst(FileName, faAnyFile, FoundData);
+  Result:=(Int64(FoundData.FindData.nFileSizeHigh) * MAXDWORD) + Int64(FoundData.FindData.nFileSizeLow);
+  FindClose(FoundData);
 end;
 
-function DownloadFile(const FileUrl, Path: string; out DownloadedFileName: string): boolean;
+function DownloadFile(const FileURL, Path: string; out DownloadedFileName: string): boolean;
 var
-  hSession, hUrl: hInternet;
-  Buffer: array[0..1023] of byte;
+  hSession, hFile: hInternet;
+  Buffer: array[0..1023] of Byte;
   BufferLen: DWORD;
   F: file;
   FileSize, FileExistsCounter: int64;
 begin
-  FileSize:=GetUrlSize(FileUrl);
+  FileSize:=GetUrlSize(FileURL);
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
-  if not Assigned(hSession) then Result:=false;
-  try
-    hUrl:=InternetOpenURL(hSession, PChar(FileUrl), nil, 0, 0, 0);
-    if not Assigned(hUrl) then Result:=false;
-    try
-      DownloadedFileName:=ExtractFileName(StringReplace(FileUrl, '/', '\', [rfReplaceAll]));
-      if not FileExists(Path + DownloadedFileName) then
-        AssignFile(F, Path + DownloadedFileName)
-      else begin
-        FileExistsCounter:=1;
-        while true do begin
-          DownloadedFileName:=ExtractFileName(StringReplace(Copy(FileUrl, 1, Length(FileUrl) - 4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileUrl);
-          if not FileExists(Path + DownloadedFileName) then begin
-            if Assigned(SyncList) then SyncList.Add(Path + DownloadedFileName); //Standard modular program
-            AssignFile(F, Path + DownloadedFileName);
-            Break;
+  if Assigned(hSession) then begin
+
+    hFile:=InternetOpenURL(hSession, PChar(FileURL), nil, 0, 0, 0);
+    if Assigned(hFile) then begin
+
+      try
+        DownloadedFileName:=ExtractFileName(StringReplace(FileURL, '/', '\', [rfReplaceAll]));
+        if not FileExists(Path + DownloadedFileName) then
+          AssignFile(F, Path + DownloadedFileName)
+        else begin
+          FileExistsCounter:=1;
+          while true do begin
+            DownloadedFileName:=ExtractFileName(StringReplace(Copy(FileURL, 1, Length(FileURL) - 4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileURL);
+            if not FileExists(Path + DownloadedFileName) then begin
+              AssignFile(F, Path + DownloadedFileName);
+              Break;
+            end;
+            inc(FileExistsCounter);
           end;
-          inc(FileExistsCounter);
         end;
+        ReWrite(F, 1);
+        repeat
+          if InternetReadFile(hFile, @Buffer, SizeOf(Buffer), BufferLen) then
+            BlockWrite(F, Buffer, BufferLen)
+          else
+            Break;
+          Application.ProcessMessages;
+        until BufferLen=0;
+        CloseFile(F);
+      except
       end;
-      Rewrite(F, 1);
-      repeat
-        InternetReadFile(hUrl, @Buffer, SizeOf(Buffer), BufferLen);
-        BlockWrite(F, Buffer, BufferLen);
-        Application.ProcessMessages;
-      until BufferLen=0;
-      CloseFile(F);
-      Result:=true;
-    finally
-      InternetCloseHandle(hUrl);
+
+      InternetCloseHandle(hFile);
     end;
-  finally
+
     InternetCloseHandle(hSession);
   end;
-  //Проверка на целостность файла / Checking file integrity
+
+  //Проверка на целостность файла / Checking file size
   if FileSize <> GetFileSize(Path + DownloadedFileName) then begin
     //Удаляем неполный файл / Delete the incomplete file
     DeleteFile(Path + DownloadedFileName);
     Result:=false;
-  end;
+  end else Result:=true;
 end;
 
 //Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
 //Отправка сообщений модульным программам / Send messages to modular programs
-procedure SendMessageToHandle(TRGWND:hWnd; MsgToHandle: string);
+procedure SendMessageToHandle(TargetWND: hWnd; MsgToHandle: string);
 var
   CDS: TCopyDataStruct;
 begin
   CDS.dwData:=0;
-  CDS.cbData:=(Length(MsgToHandle) + 1) * SizeOf(char);
+  CDS.cbData:=(Length(MsgToHandle) + 1) * SizeOf(Char);
   CDS.lpData:=PChar(MsgToHandle);
-  SendMessage(TRGWND, WM_COPYDATA, Integer(Application.Handle), Integer(@CDS));
+  SendMessage(TargetWND, WM_COPYDATA, Integer(Application.Handle), Integer(@CDS));
 end;
 
-function FindWindowExtd(PartialTitle: string): HWND;
+function FindWindowExtd(PartTitle: string): HWND;
 var
-  hWndTemp: hWnd;
-  iLenText: Integer;
-  cTitletemp: array [0..254] of Char;
-  sTitleTemp: string;
+  hWndN: HWND;
+  TitleLen: integer;
+  CurTitleWnd: array [0..254] of Char;
+  TitleWnd: string;
 begin
-  hWndTemp:=FindWindow(nil, nil);
-  while hWndTemp <> 0 do begin
-    iLenText:=GetWindowText(hWndTemp, cTitletemp, 255);
-    sTitleTemp:=cTitletemp;
-    sTitleTemp:=AnsiUpperCase(Copy(sTitleTemp, 1, iLenText));
-    PartialTitle:=AnsiUpperCase(PartialTitle);
-    if Pos(partialTitle, sTitleTemp) <> 0 then
+  hWndN:=FindWindow(nil, nil);
+  while hWndN <> 0 do begin
+    TitleLen:=GetWindowText(hWndN, CurTitleWnd, 255);
+    TitleWnd:=AnsiLowerCase(Copy(CurTitleWnd, 1, TitleLen));
+    PartTitle:=AnsiLowerCase(PartTitle);
+    if Pos(PartTitle, TitleWnd) <> 0 then
       Break;
-    hWndTemp:=GetWindow(hWndTemp, GW_HWNDNEXT);
+    hWndN:=GetWindow(hWndN, GW_HWNDNEXT);
   end;
-  Result:=hWndTemp;
+  Result:=hWndN;
 end;
 
 procedure TMain.RefreshBtnClick(Sender: TObject);
@@ -290,7 +292,7 @@ var
   DownloadedFileName: string;
 begin
   //Пропуск загрузки новых подкастов для новой ленты / Skip download new podcasts for new feed
-  if RSSMemoChanged then
+  if RssChanged then
     case MessageBox(Handle, PChar(StringReplace(ID_NEW_FEED_QUESTION, '\n', #13#10, [rfReplaceAll])), PChar(Caption), MB_YESNO + MB_ICONQUESTION) of
       6: DownloadPodcasts:=false;
       7: DownloadPodcasts:=true;
@@ -432,7 +434,9 @@ begin
   DownloadPodcasts:=true;
 
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Setup.ini');
-  DownloadPath:=Ini.ReadString('Main', 'Path', GetEnvironmentVariable('USERPROFILE') + '\Desktop\');
+  DownloadPath:=Ini.ReadString('Main', 'Path', '');
+  if Trim(DownloadPath) = '' then
+    DownloadPath:=GetEnvironmentVariable('USERPROFILE') + '\Desktop\';
   ModuleWndID:=Ini.ReadString('Main', 'ModuleWndID', '');
   Ini.Free;
 
@@ -440,7 +444,7 @@ begin
 
   if FileExists(ExtractFilePath(ParamStr(0)) + 'RSS.txt') then
     RssListMemo.Lines.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
-  RSSMemoChanged:=false;
+  RssChanged:=false;
 
   //Перевод / Translate
   if FileExists(ExtractFilePath(ParamStr(0)) + 'Languages\' + GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini') then
@@ -476,7 +480,7 @@ end;
 
 procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if RSSMemoChanged then
+  if RssChanged then
     RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
   if Assigned(SyncList) then
     SyncList.Free;
@@ -493,9 +497,9 @@ var
 begin
   if (Assigned(SyncList)) and (PChar(TWMCopyData(msg).CopyDataStruct.lpData) = 'YES') and
   (SyncList.Count > 0) and (hTargetWnd <> 0) then
-    SendMessageToHandle(hTargetWnd,SyncList.Text);
+    SendMessageToHandle(hTargetWnd, SyncList.Text);
 
-  if PChar(TWMCopyData(msg).CopyDataStruct.lpData) = 'GOOD' then begin
+  if PChar(TWMCopyData(Msg).CopyDataStruct.lpData) = 'GOOD' then begin
     SyncList.Delete(0);
     for i:=0 to SyncList.Count - 1 do
       if FileExists(SyncList.Strings[i]) then
@@ -503,7 +507,7 @@ begin
     FreeAndNil(SyncList);
     StatusBar.SimpleText:=' ' + ID_UPLOADED_PODCASTS_TO_DEVICE;
   end;
-  //SendMessageToHandle(msg.From,'YES');
+  //SendMessageToHandle(Msg.From, 'YES');
   Msg.Result:=Integer(True);
 end;
 
@@ -520,7 +524,7 @@ end;
 procedure TMain.StatusBarClick(Sender: TObject);
 begin
   Application.MessageBox(PChar(Caption + ' 0.9.5' + #13#10 +
-  ID_LAST_UPDATE + ' 28.07.2018' + #13#10 +
+  ID_LAST_UPDATE + ' 07.01.2018' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
@@ -579,7 +583,7 @@ end;
 
 procedure TMain.RSSListMemoChange(Sender: TObject);
 begin
-  RSSMemoChanged:=true;
+  RssChanged:=true;
 end;
 
 procedure TMain.SettingsBtnClick(Sender: TObject);
