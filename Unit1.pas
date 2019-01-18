@@ -136,6 +136,7 @@ begin
       StrStream:=TStringStream.Create('');
       try
         repeat
+          Application.ProcessMessages;
           FillChar(Buffer, SizeOf(Buffer), 0);
           BufferLen:=0;
           if InternetReadFile(hURL, @Buffer, SizeOf(Buffer), BufferLen) then
@@ -196,7 +197,7 @@ end;
 
 function DownloadFile(const FileURL, Path: string; out DownloadedFileName: string): boolean;
 var
-  hSession, hFile: hInternet;
+  hSession, hFile: HINTERNET;
   Buffer: array[0..1023] of Byte;
   BufferLen: DWORD;
   F: file;
@@ -252,7 +253,7 @@ end;
 
 //Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
 //Отправка сообщений модульным программам / Send messages to modular programs
-procedure SendMessageToHandle(TargetWND: hWnd; MsgToHandle: string);
+procedure SendMessageToHandle(TargetWND: HWND; MsgToHandle: string);
 var
   CDS: TCopyDataStruct;
 begin
