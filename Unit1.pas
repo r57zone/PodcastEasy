@@ -87,7 +87,7 @@ begin
   Result:=pcLCA;
 end;
 
-function CheckUrl(const URL: string): boolean;
+function HTTPCheck(const URL: string): boolean;
 var
   hSession, hUrl: HINTERNET;
   dwIndex, dwCodeLen, dwFlags: DWORD;
@@ -136,13 +136,13 @@ begin
       StrStream:=TStringStream.Create('');
       try
         repeat
-          Application.ProcessMessages;
           FillChar(Buffer, SizeOf(Buffer), 0);
           BufferLen:=0;
           if InternetReadFile(hURL, @Buffer, SizeOf(Buffer), BufferLen) then
             StrStream.WriteBuffer(Buffer, BufferLen)
           else
             Break;
+          Application.ProcessMessages;
         until BufferLen = 0;
         Result:=StrStream.DataString;
       except
@@ -157,7 +157,7 @@ begin
   end;
 end;
 
-function GetUrlSize(const URL: string): integer;
+function HTTPGetSize(const URL: string): int64;
 var
   hSession, hFile: HINTERNET;
   dwBuffer: array[1..20] of Char;
@@ -195,7 +195,7 @@ begin
   FindClose(FoundData);
 end;
 
-function DownloadFile(const FileURL, Path: string; out DownloadedFileName: string): boolean;
+function HTTPDownloadFile(const URL, Path: string; out DownloadedFileName: string): boolean;
 var
   hSession, hFile: HINTERNET;
   Buffer: array[0..1023] of Byte;
@@ -203,26 +203,25 @@ var
   F: file;
   FileSize, FileExistsCounter: int64;
 begin
-  FileSize:=GetUrlSize(FileURL);
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
 
-    hFile:=InternetOpenURL(hSession, PChar(FileURL), nil, 0, 0, 0);
+    hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, 0, 0);
     if Assigned(hFile) then begin
 
       try
-        DownloadedFileName:=ExtractFileName(StringReplace(FileURL, '/', '\', [rfReplaceAll]));
+        DownloadedFileName:=ExtractFileName(StringReplace(URL, '/', '\', [rfReplaceAll]));
         if not FileExists(Path + DownloadedFileName) then
           AssignFile(F, Path + DownloadedFileName)
         else begin
           FileExistsCounter:=1;
           while true do begin
-            DownloadedFileName:=ExtractFileName(StringReplace(Copy(FileURL, 1, Length(FileURL) - 4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(FileURL);
+            DownloadedFileName:=ExtractFileName(StringReplace(Copy(URL, 1, Length(URL) - 4), '/', '\', [rfReplaceAll])) + '(' + IntToStr(FileExistsCounter) + ')' + ExtractFileExt(URL);
             if not FileExists(Path + DownloadedFileName) then begin
               AssignFile(F, Path + DownloadedFileName);
               Break;
             end;
-            inc(FileExistsCounter);
+            Inc(FileExistsCounter);
           end;
         end;
         ReWrite(F, 1);
@@ -232,7 +231,7 @@ begin
           else
             Break;
           Application.ProcessMessages;
-        until BufferLen=0;
+        until BufferLen = 0;
         CloseFile(F);
       except
       end;
@@ -244,6 +243,7 @@ begin
   end;
 
   //Проверка на целостность файла / Checking file size
+  FileSize:=HTTPGetSize(URL);
   if FileSize <> GetFileSize(Path + DownloadedFileName) then begin
     //Удаляем неполный файл / Delete the incomplete file
     DeleteFile(Path + DownloadedFileName);
@@ -311,6 +311,7 @@ begin
   RefreshBtn.Enabled:=false;
   RssListMemo.ReadOnly:=true;
   SettingsBtn.Enabled:=false;
+  Application.ProcessMessages; //Мгновенное отключение кнопок / Instant disable buttons
 
   if FileExists(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt') then
     Downloaded.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt');
@@ -335,7 +336,7 @@ begin
         repeat
           if (Pos(RegExp.Match[1], Download.Text) = 0) and //Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
           (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  //Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
-          (CheckUrl(RegExp.Match[1])) then begin
+          (HTTPCheck(RegExp.Match[1])) then begin
             StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
 
             //Добавление ссылки в список для загрузки / Add link to download list
@@ -353,7 +354,7 @@ begin
         repeat
           if (Pos(RegExp.Match[1], Download.Text) = 0) and //Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
           (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  //Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
-          (CheckUrl(RegExp.Match[1])) then begin
+          (HTTPCheck(RegExp.Match[1])) then begin
             StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
 
             //Добавление ссылки в список для загрузки / Add link to download list
@@ -376,7 +377,7 @@ begin
       StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount]);
 
       if DownloadPodcasts then //Разрешение на загрузку / Permission to download
-        if DownloadFile(Download.Strings[i], DownloadPath, DownloadedFileName) = false then begin //В случае ошибки / If error
+        if HTTPDownloadFile(Download.Strings[i], DownloadPath, DownloadedFileName) = false then begin //В случае ошибки / If error
           Download.Delete(i); //Удаляем из списка на сохранение файл, который не загрузился целиком / Remove from list to save the file, which is not fully downloaded
           Error:=true;
           inc(ErrorCount);
@@ -388,7 +389,6 @@ begin
             end;
             SyncList.Add(DownloadPath + DownloadedFileName);
           end;
-      Application.ProcessMessages;
     end;
 
     if Error = false then begin
@@ -537,7 +537,7 @@ var
   Error: boolean;
 begin
   Settings.ProgressBar.Visible:=true;
-  RssListMemo.Visible:=false;
+  RssListMemo.Enabled:=false;
   RefreshBtn.Enabled:=false;
   Error:=false;
   Downloaded:=TStringList.Create;
@@ -548,7 +548,7 @@ begin
   //Создание общего списка / Creating a common list
   for i:=RssListMemo.Lines.Count - 1 downto 0 do begin
     if Trim(RssListMemo.Lines.Strings[i]) = '' then Continue;
-    if CheckUrl(RssListMemo.Lines.Strings[i]) = false then begin
+    if HTTPCheck(RssListMemo.Lines.Strings[i]) = false then begin
       Error:=true;
       break;
     end;
@@ -578,7 +578,7 @@ begin
   Links.Free;
   Settings.ProgressBar.Position:=0;
   Settings.ProgressBar.Visible:=false;
-  RssListMemo.Visible:=true;
+  RssListMemo.Enabled:=true;
   RefreshBtn.Enabled:=true;
 end;
 
