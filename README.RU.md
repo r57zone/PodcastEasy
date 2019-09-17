@@ -7,7 +7,7 @@
 ![](https://user-images.githubusercontent.com/9499881/43281249-45db3712-9124-11e8-84f0-69d508b30764.PNG)
 
 ## Загрузка
->Версия для Windows XP, Windows 7, Windows 8.1, Windows 10.<br>
+>Версия для Windows XP, 7, 8.1, 10.<br>
 **[Загрузить](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**<br>
 >Версия для Python и QPython (Android)<br>
 **[Загрузить](https://github.com/r57zone/Podcast-Easy-for-python)**<br>
