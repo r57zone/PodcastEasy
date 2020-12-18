@@ -25,6 +25,7 @@ type
     DownloadedPodcastsDescLbl: TLabel;
     DownloadedPodcastsGB: TGroupBox;
     StatusLbl: TLabel;
+    AboutBtn: TButton;
     procedure OkBtnClick(Sender: TObject);
     procedure ChooseBtnClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -33,6 +34,11 @@ type
     procedure ExportBtnClick(Sender: TObject);
     procedure RemLinksBtnClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure EditPathKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure AboutBtnClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -195,6 +201,30 @@ end;
 procedure TSettings.FormShow(Sender: TObject);
 begin
   DownloadPodcastsCB.Checked:=DownloadPodcasts;
+end;
+
+procedure TSettings.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  //Убираем баг скрытия контролов
+  if Key = VK_MENU then
+    Key:=0;
+end;
+
+procedure TSettings.EditPathKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  //Убираем баг скрытия контролов
+  if Key = VK_MENU then
+    Key:=0;
+end;
+
+procedure TSettings.AboutBtnClick(Sender: TObject);
+begin
+  Application.MessageBox(PChar(Caption + ' 1.0' + #13#10 +
+  ID_LAST_UPDATE + ' 18.12.2020' + #13#10 +
+  'https://r57zone.github.io' + #13#10 +
+  'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
 
 end.

@@ -4,7 +4,7 @@ object Settings: TSettings
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
-  ClientHeight = 245
+  ClientHeight = 244
   ClientWidth = 376
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,6 +15,7 @@ object Settings: TSettings
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -83,12 +84,13 @@ object Settings: TSettings
       Height = 21
       ReadOnly = True
       TabOrder = 0
+      OnKeyDown = EditPathKeyDown
     end
     object ChooseBtn: TButton
       Left = 182
-      Top = 40
+      Top = 39
       Width = 75
-      Height = 21
+      Height = 23
       Caption = #1042#1099#1073#1088#1072#1090#1100
       TabOrder = 1
       OnClick = ChooseBtnClick
@@ -141,6 +143,15 @@ object Settings: TSettings
       TabOrder = 1
       Visible = False
     end
+  end
+  object AboutBtn: TButton
+    Left = 344
+    Top = 211
+    Width = 25
+    Height = 25
+    Caption = '?'
+    TabOrder = 5
+    OnClick = AboutBtnClick
   end
   object OpenDialog: TOpenDialog
     Filter = 'OPML '#1092#1072#1081#1083#1099'|*.opml'

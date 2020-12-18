@@ -16,14 +16,58 @@ object Main: TMain
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
-  object SettingsBtn: TSpeedButton
+  object RefreshBtn: TButton
+    Left = 7
+    Top = 6
+    Width = 75
+    Height = 25
+    Caption = #1054#1073#1085#1086#1074#1080#1090#1100
+    TabOrder = 0
+    OnClick = RefreshBtnClick
+  end
+  object RSSListMemo: TMemo
+    Left = 7
+    Top = 38
+    Width = 281
+    Height = 102
+    Font.Charset = RUSSIAN_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    ScrollBars = ssBoth
+    TabOrder = 2
+    OnChange = RSSListMemoChange
+    OnKeyDown = RSSListMemoKeyDown
+  end
+  object StatusBar: TStatusBar
+    Left = 0
+    Top = 143
+    Width = 294
+    Height = 19
+    Panels = <>
+    SimplePanel = True
+  end
+  object OpenFolderBtn: TButton
+    Left = 86
+    Top = 6
+    Width = 75
+    Height = 25
+    Caption = #1047#1072#1075#1088#1091#1079#1082#1080
+    TabOrder = 1
+    OnClick = OpenFolderBtnClick
+  end
+  object SettingsBtn: TBitBtn
     Left = 264
     Top = 6
     Width = 25
     Height = 25
-    Flat = True
+    TabOrder = 4
+    OnClick = SettingsBtnClick
     Glyph.Data = {
       36060000424D3606000000000000360000002800000020000000100000000100
       18000000000000060000120B0000120B00000000000000000000FF00FFFF00FF
@@ -76,59 +120,19 @@ object Main: TMain
       FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFADADADC0
       C0C0ADADADFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF}
     NumGlyphs = 2
-    OnClick = SettingsBtnClick
   end
-  object RefreshBtn: TButton
+  object CancelBtn: TButton
     Left = 7
     Top = 6
     Width = 75
     Height = 25
-    Caption = #1054#1073#1085#1086#1074#1080#1090#1100
-    TabOrder = 0
-    OnClick = RefreshBtnClick
-  end
-  object RSSListMemo: TMemo
-    Left = 7
-    Top = 38
-    Width = 281
-    Height = 102
-    Font.Charset = RUSSIAN_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    ScrollBars = ssBoth
-    TabOrder = 2
-    OnChange = RSSListMemoChange
-  end
-  object StatusBar: TStatusBar
-    Left = 0
-    Top = 143
-    Width = 294
-    Height = 19
-    Panels = <>
-    SimplePanel = True
-    OnClick = StatusBarClick
-  end
-  object OpenFolderBtn: TButton
-    Left = 86
-    Top = 6
-    Width = 75
-    Height = 25
-    Caption = #1047#1072#1075#1088#1091#1079#1082#1080
-    TabOrder = 1
-    OnClick = OpenFolderBtnClick
+    Caption = #1054#1090#1084#1077#1085#1072
+    TabOrder = 5
+    Visible = False
+    OnClick = CancelBtnClick
   end
   object XPManifest: TXPManifest
-    Left = 200
-    Top = 8
-  end
-  object Timer: TTimer
-    Enabled = False
-    Interval = 100
-    OnTimer = TimerTimer
-    Left = 232
-    Top = 8
+    Left = 16
+    Top = 48
   end
 end

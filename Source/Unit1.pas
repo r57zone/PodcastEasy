@@ -1,5 +1,8 @@
 unit Unit1;
 
+{       Podcast Easy by r57zone
+https://github.com/r57zone/Podcast-Easy }
+
 interface
 
 uses
@@ -14,19 +17,21 @@ type
     StatusBar: TStatusBar;
     XPManifest: TXPManifest;
     OpenFolderBtn: TButton;
-    Timer: TTimer;
-    SettingsBtn: TSpeedButton;
+    SettingsBtn: TBitBtn;
+    CancelBtn: TButton;
     procedure RefreshBtnClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure OpenFolderBtnClick(Sender: TObject);
-    procedure TimerTimer(Sender: TObject);
-    procedure StatusBarClick(Sender: TObject);
     procedure CheckDownloadedLinks;
     procedure RSSListMemoChange(Sender: TObject);
+    procedure RSSListMemoKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure SettingsBtnClick(Sender: TObject);
+    procedure CancelBtnClick(Sender: TObject);
   private
-    procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     { Private declarations }
   public
     { Public declarations }
@@ -34,10 +39,8 @@ type
 
 var
   Main: TMain;
-  DownloadPath, LangFile, ModuleWndID: string;
-  SyncList: TStringList;
-  hTargetWnd: hWnd;
-  DownloadPodcasts, RssChanged: boolean;
+  DownloadPath, LangFile: string;
+  StopDownload, DownloadPodcasts, RssChanged: boolean;
 
   //Перевод / Translate
   //Main
@@ -118,7 +121,7 @@ end;
 function HTTPGet(URL: string): string;
 var
   hSession, hUrl: HINTERNET;
-  Buffer: array [0..1023] of Byte;
+  Buffer: array [1..8192] of Byte;
   dwFlags, BufferLen: DWORD;
   StrStream: TStringStream;
 begin
@@ -195,14 +198,17 @@ begin
   FindClose(FoundData);
 end;
 
-function HTTPDownloadFile(const URL, Path: string; out DownloadedFileName: string): boolean;
+function HTTPDownloadFile(const URL, Path: string; out DownloadedFileName: string; DownloadIndex, DownloadCount: integer): boolean;
 var
   hSession, hFile: HINTERNET;
-  Buffer: array[0..1023] of Byte;
+  Buffer: array[1..8192] of Byte;
   BufferLen: DWORD;
   F: file;
   FileSize, FileExistsCounter: int64;
+  CopySize: int64;
 begin
+  FileSize:=HTTPGetSize(URL); //Получаем размер файла
+
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
 
@@ -226,9 +232,13 @@ begin
         end;
         ReWrite(F, 1);
         repeat
-          if InternetReadFile(hFile, @Buffer, SizeOf(Buffer), BufferLen) then
-            BlockWrite(F, Buffer, BufferLen)
-          else
+          if InternetReadFile(hFile, @Buffer, SizeOf(Buffer), BufferLen) then begin
+            BlockWrite(F, Buffer, BufferLen);
+            CopySize:=CopySize + SizeOf(Buffer);
+            Main.StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount, Round( CopySize / (FileSize / 100) )]);
+            if StopDownload then // По запросу останавливаем загрузку
+              break;
+          end else
             Break;
           Application.ProcessMessages;
         until BufferLen = 0;
@@ -243,43 +253,11 @@ begin
   end;
 
   //Проверка на целостность файла / Checking file size
-  FileSize:=HTTPGetSize(URL);
   if FileSize <> GetFileSize(Path + DownloadedFileName) then begin
     //Удаляем неполный файл / Delete the incomplete file
     DeleteFile(Path + DownloadedFileName);
     Result:=false;
   end else Result:=true;
-end;
-
-//Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
-//Отправка сообщений модульным программам / Send messages to modular programs
-procedure SendMessageToHandle(TargetWND: HWND; MsgToHandle: string);
-var
-  CDS: TCopyDataStruct;
-begin
-  CDS.dwData:=0;
-  CDS.cbData:=(Length(MsgToHandle) + 1) * SizeOf(Char);
-  CDS.lpData:=PChar(MsgToHandle);
-  SendMessage(TargetWND, WM_COPYDATA, Integer(Application.Handle), Integer(@CDS));
-end;
-
-function FindWindowExtd(PartTitle: string): HWND;
-var
-  hWndN: HWND;
-  TitleLen: integer;
-  CurTitleWnd: array [0..254] of Char;
-  TitleWnd: string;
-begin
-  hWndN:=FindWindow(nil, nil);
-  while hWndN <> 0 do begin
-    TitleLen:=GetWindowText(hWndN, CurTitleWnd, 255);
-    TitleWnd:=AnsiLowerCase(Copy(CurTitleWnd, 1, TitleLen));
-    PartTitle:=AnsiLowerCase(PartTitle);
-    if Pos(PartTitle, TitleWnd) <> 0 then
-      Break;
-    hWndN:=GetWindow(hWndN, GW_HWNDNEXT);
-  end;
-  Result:=hWndN;
 end;
 
 procedure TMain.RefreshBtnClick(Sender: TObject);
@@ -292,7 +270,7 @@ var
   Error: boolean;
   DownloadedFileName: string;
 begin
-  //Пропуск загрузки новых подкастов для новой ленты / Skip download new podcasts for new feed
+  // Пропуск загрузки новых подкастов для новой ленты / Skip download new podcasts for new feed
   if RssChanged then
     case MessageBox(Handle, PChar(StringReplace(ID_NEW_FEED_QUESTION, '\n', #13#10, [rfReplaceAll])), PChar(Caption), MB_YESNO + MB_ICONQUESTION) of
       6: DownloadPodcasts:=false;
@@ -300,13 +278,14 @@ begin
     end;
 
   RegExp:=TRegExpr.Create;
-  RegExp.ModifierG:=false; //Не жадный режим / None greedy mode
-  Error:=false; //Ошибка загрузки файлов / Error downloaded files
-  ErrorCount:=0; //Счетчик неполных файлов / Counter incomplete files
-  DownloadCount:=0; //Счетчик файлов на загрузку / Counter files to download
-  GetRss:=TStringList.Create; //Лента / Rss
-  Downloaded:=TStringList.Create; //Список ссылок загруженных подкастов / List of links downloaded podcasts
+  RegExp.ModifierG:=false; // Не жадный режим / None greedy mode
+  Error:=false; // Ошибка загрузки файлов / Error downloaded files
+  ErrorCount:=0; // Счетчик неполных файлов / Counter incomplete files
+  DownloadCount:=0; // Счетчик файлов на загрузку / Counter files to download
+  GetRss:=TStringList.Create; // Лента / Rss
+  Downloaded:=TStringList.Create; // Список ссылок загруженных подкастов / List of links downloaded podcasts
   Download:=TStringList.Create;
+  StopDownload:=false; // Дать возможность завершить загрузку
   //Отключение кнопок / Disable buttons
   RefreshBtn.Enabled:=false;
   RssListMemo.ReadOnly:=true;
@@ -366,6 +345,10 @@ begin
 
   end;
 
+  RefreshBtn.Visible:=false;
+  CancelBtn.Visible:=true;
+  Main.Refresh;
+
   //Загрузка файлов / Download files
   if Download.Count > 0 then begin
 
@@ -374,21 +357,13 @@ begin
 
     for i:=Download.Count - 1 downto 0 do begin
       Inc(DownloadIndex);
-      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount]);
 
       if DownloadPodcasts then //Разрешение на загрузку / Permission to download
-        if HTTPDownloadFile(Download.Strings[i], DownloadPath, DownloadedFileName) = false then begin //В случае ошибки / If error
+        if HTTPDownloadFile(Download.Strings[i], DownloadPath, DownloadedFileName, DownloadIndex, DownloadCount) = false then begin //В случае ошибки / If error
           Download.Delete(i); //Удаляем из списка на сохранение файл, который не загрузился целиком / Remove from list to save the file, which is not fully downloaded
           Error:=true;
-          inc(ErrorCount);
-        end else
-          if ModuleWndID <> '' then begin //Стандарт модульных программ / Standart modular program - https://github.com/r57zone/Standard-modular-program
-            if Assigned(SyncList) = false then begin
-              SyncList:=TStringList.Create;
-              SyncList.Add('FILES TO SYNC');
-            end;
-            SyncList.Add(DownloadPath + DownloadedFileName);
-          end;
+          Inc(ErrorCount);
+        end;
     end;
 
     if Error = false then begin
@@ -399,7 +374,7 @@ begin
         StatusBar.SimpleText:=' ' + ID_PODCASTS_SKIPPED;  //Все подкасты пропущены // All Podcasts skipped
 
     end else
-      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [Download.Count, DownloadCount]); //Ошибка загрузки / Download error
+      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [DownloadCount - ErrorCount, DownloadCount]); //Ошибка загрузки / Download error
 
     //Сохранение ссылок на загруженные подкасты, чтобы не загружать их снова / Save links to downloaded podcasts to not download them again
     Downloaded.Add(Download.Text);
@@ -412,14 +387,13 @@ begin
 
   end else StatusBar.SimpleText:=' ' + ID_PODCASTS_NOT_FOUND; //Новых подкастов не найдено / Not found new podcasts
 
+  RefreshBtn.Visible:=true;
+  CancelBtn.Visible:=false;
+
   //Включение кнопок / Enable buttons
   RefreshBtn.Enabled:=true;
   RssListMemo.ReadOnly:=false;
   SettingsBtn.Enabled:=true;
-
-  //Стандарт модульных программ / Standard modular program
-  if Assigned(SyncList) then
-    Timer.Enabled:=true;
 
   Download.Free;
   GetRss.Free;
@@ -438,7 +412,6 @@ begin
   DownloadPath:=Ini.ReadString('Main', 'Path', '');
   if Trim(DownloadPath) = '' then
     DownloadPath:=GetEnvironmentVariable('USERPROFILE') + '\Desktop\';
-  ModuleWndID:=Ini.ReadString('Main', 'ModuleWndID', '');
   Ini.Free;
 
   Application.Title:=Caption;
@@ -456,6 +429,7 @@ begin
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
 
   RefreshBtn.Caption:=Ini.ReadString('Main', 'ID_REFRESH', '');
+  CancelBtn.Caption:=Ini.ReadString('Main', 'ID_CANCEL', '');
   OpenFolderBtn.Caption:=Ini.ReadString('Main', 'ID_DOWNLOADS', '');
 
   ID_NEW_FEED_QUESTION:=Ini.ReadString('Main', 'ID_NEW_FEED_QUESTION', '');
@@ -483,51 +457,11 @@ procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if RssChanged then
     RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
-  if Assigned(SyncList) then
-    SyncList.Free;
 end;
 
 procedure TMain.OpenFolderBtnClick(Sender: TObject);
 begin
   ShellExecute(Handle, nil, PChar(DownloadPath), nil, nil, SW_SHOWNORMAL);
-end;
-
-procedure TMain.WMCopyData(var Msg: TWMCopyData);
-var
-  i: integer;
-begin
-  if (Assigned(SyncList)) and (PChar(TWMCopyData(msg).CopyDataStruct.lpData) = 'YES') and
-  (SyncList.Count > 0) and (hTargetWnd <> 0) then
-    SendMessageToHandle(hTargetWnd, SyncList.Text);
-
-  if PChar(TWMCopyData(Msg).CopyDataStruct.lpData) = 'GOOD' then begin
-    SyncList.Delete(0);
-    for i:=0 to SyncList.Count - 1 do
-      if FileExists(SyncList.Strings[i]) then
-        DeleteFile(SyncList.Strings[i]);
-    FreeAndNil(SyncList);
-    StatusBar.SimpleText:=' ' + ID_UPLOADED_PODCASTS_TO_DEVICE;
-  end;
-  //SendMessageToHandle(Msg.From, 'YES');
-  Msg.Result:=Integer(True);
-end;
-
-procedure TMain.TimerTimer(Sender: TObject);
-begin
-  //Стадарт модульных программ / Standard modular program
-  hTargetWnd:=FindWindowExtd(ModuleWndID);
-  if hTargetWnd <> 0 then begin
-    SendMessageToHandle(hTargetWnd, 'WORK');
-    Timer.Enabled:=false;
-  end;
-end;
-
-procedure TMain.StatusBarClick(Sender: TObject);
-begin
-  Application.MessageBox(PChar(Caption + ' 0.9.5' + #13#10 +
-  ID_LAST_UPDATE + ' 07.01.2018' + #13#10 +
-  'https://r57zone.github.io' + #13#10 +
-  'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
 
 procedure TMain.CheckDownloadedLinks;
@@ -587,9 +521,30 @@ begin
   RssChanged:=true;
 end;
 
+procedure TMain.RSSListMemoKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  //Убираем баг скрытия контролов
+  if Key = VK_MENU then
+    Key:=0;
+end;
+
+procedure TMain.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  //Убираем баг скрытия контролов
+  if Key = VK_MENU then
+    Key:=0;
+end;
+
 procedure TMain.SettingsBtnClick(Sender: TObject);
 begin
   Settings.ShowModal;
+end;
+
+procedure TMain.CancelBtnClick(Sender: TObject);
+begin
+  StopDownload:=true;
 end;
 
 end.

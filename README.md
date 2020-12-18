@@ -7,7 +7,7 @@ Application for download podcasts. Enter rss feeds manually or import OPML file 
 ![](https://user-images.githubusercontent.com/9499881/43281281-58622af8-9124-11e8-8e4b-66f21e9511aa.PNG)
 
 ## Download
->Version for Windows XP, 7, 8.1, 10.<br>
+>Version for Windows 7, 8.1, 10.<br>
 **[Download](https://github.com/r57zone/Podcast-Easy-for-Windows/releases)**<br>
 >Version for Python and QPython (Android)<br>
 **[Download](https://github.com/r57zone/Podcast-Easy-for-python)**<br>
