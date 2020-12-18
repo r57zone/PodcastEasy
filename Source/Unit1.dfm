@@ -4,8 +4,8 @@ object Main: TMain
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Podcast Easy'
-  ClientHeight = 162
-  ClientWidth = 294
+  ClientHeight = 166
+  ClientWidth = 295
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,7 +20,7 @@ object Main: TMain
   PixelsPerInch = 96
   TextHeight = 13
   object RefreshBtn: TButton
-    Left = 7
+    Left = 6
     Top = 6
     Width = 75
     Height = 25
@@ -46,14 +46,14 @@ object Main: TMain
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 143
-    Width = 294
+    Top = 147
+    Width = 295
     Height = 19
     Panels = <>
     SimplePanel = True
   end
   object OpenFolderBtn: TButton
-    Left = 86
+    Left = 85
     Top = 6
     Width = 75
     Height = 25
@@ -122,7 +122,7 @@ object Main: TMain
     NumGlyphs = 2
   end
   object CancelBtn: TButton
-    Left = 7
+    Left = 6
     Top = 6
     Width = 75
     Height = 25
