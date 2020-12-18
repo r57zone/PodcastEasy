@@ -207,7 +207,7 @@ var
   FileSize, FileExistsCounter: int64;
   CopySize: int64;
 begin
-  FileSize:=HTTPGetSize(URL); //Получаем размер файла
+  FileSize:=HTTPGetSize(URL); // Получаем размер файла / Get file size
 
   hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
@@ -236,7 +236,7 @@ begin
             BlockWrite(F, Buffer, BufferLen);
             CopySize:=CopySize + SizeOf(Buffer);
             Main.StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount, Round( CopySize / (FileSize / 100) )]);
-            if StopDownload then // По запросу останавливаем загрузку
+            if StopDownload then // По запросу останавливаем загрузку / Stop download on request
               break;
           end else
             Break;
@@ -252,9 +252,9 @@ begin
     InternetCloseHandle(hSession);
   end;
 
-  //Проверка на целостность файла / Checking file size
+  // Проверка на целостность файла / Checking file size
   if FileSize <> GetFileSize(Path + DownloadedFileName) then begin
-    //Удаляем неполный файл / Delete the incomplete file
+    // Удаляем неполный файл / Delete the incomplete file
     DeleteFile(Path + DownloadedFileName);
     Result:=false;
   end else Result:=true;
@@ -285,17 +285,17 @@ begin
   GetRss:=TStringList.Create; // Лента / Rss
   Downloaded:=TStringList.Create; // Список ссылок загруженных подкастов / List of links downloaded podcasts
   Download:=TStringList.Create;
-  StopDownload:=false; // Дать возможность завершить загрузку
-  //Отключение кнопок / Disable buttons
+  StopDownload:=false; // Дать возможность завершить загрузку / Allow abort download
+  // Отключение кнопок / Disable buttons
   RefreshBtn.Enabled:=false;
   RssListMemo.ReadOnly:=true;
   SettingsBtn.Enabled:=false;
-  Application.ProcessMessages; //Мгновенное отключение кнопок / Instant disable buttons
+  Application.ProcessMessages; // Мгновенное отключение кнопок / Instant disable buttons
 
   if FileExists(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt') then
     Downloaded.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt');
 
-  //Проверка лент на новые подкасты / Check feed for new podcasts
+  // Проверка лент на новые подкасты / Check feed for new podcasts
   for i:=0 to RssListMemo.Lines.Count - 1 do begin
 
     if Trim(RssListMemo.Lines.Strings[i]) = '' then
@@ -307,36 +307,36 @@ begin
     if Trim(GetRss.Text) = '' then
       Continue;
 
-    //Atom, устаревший стандарт / old standard
+    // Atom, устаревший стандарт / old standard
     RegExp.Expression:='(?i)<content.*src="(.*(' + PodcastExt + '))"';
 
     try
       if RegExp.Exec(GetRss.Text) then
         repeat
-          if (Pos(RegExp.Match[1], Download.Text) = 0) and //Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
-          (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  //Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
+          if (Pos(RegExp.Match[1], Download.Text) = 0) and // Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
+          (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  // Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
           (HTTPCheck(RegExp.Match[1])) then begin
             StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
 
-            //Добавление ссылки в список для загрузки / Add link to download list
+            // Добавление ссылки в список для загрузки / Add link to download list
             Download.Add(RegExp.Match[1]);
           end;
         until not RegExp.ExecNext;
     except
     end;
 
-    //RSS 2.0
+    // RSS 2.0
     RegExp.Expression:='(?i)<enclosure.*url="(.*(' + PodcastExt + '))"';
 
     try
       if RegExp.Exec(GetRss.Text) then
         repeat
-          if (Pos(RegExp.Match[1], Download.Text) = 0) and //Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
-          (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  //Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
+          if (Pos(RegExp.Match[1], Download.Text) = 0) and // Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
+          (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  // Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
           (HTTPCheck(RegExp.Match[1])) then begin
             StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
 
-            //Добавление ссылки в список для загрузки / Add link to download list
+            // Добавление ссылки в список для загрузки / Add link to download list
             Download.Add(RegExp.Match[1]);
           end;
         until not RegExp.ExecNext;
@@ -349,7 +349,7 @@ begin
   CancelBtn.Visible:=true;
   Main.Refresh;
 
-  //Загрузка файлов / Download files
+  // Загрузка файлов / Download files
   if Download.Count > 0 then begin
 
     DownloadCount:=Download.Count;
@@ -358,9 +358,9 @@ begin
     for i:=Download.Count - 1 downto 0 do begin
       Inc(DownloadIndex);
 
-      if DownloadPodcasts then //Разрешение на загрузку / Permission to download
+      if DownloadPodcasts then // Разрешение на загрузку / Permission to download
         if HTTPDownloadFile(Download.Strings[i], DownloadPath, DownloadedFileName, DownloadIndex, DownloadCount) = false then begin //В случае ошибки / If error
-          Download.Delete(i); //Удаляем из списка на сохранение файл, который не загрузился целиком / Remove from list to save the file, which is not fully downloaded
+          Download.Delete(i); // Удаляем из списка на сохранение файл, который не загрузился целиком / Remove from list to save the file, which is not fully downloaded
           Error:=true;
           Inc(ErrorCount);
         end;
@@ -369,23 +369,23 @@ begin
     if Error = false then begin
 
       if DownloadPodcasts then
-        StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  //Все подкасты загружены // All Podcasts downloaded
+        StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  // Все подкасты загружены // All Podcasts downloaded
       else
-        StatusBar.SimpleText:=' ' + ID_PODCASTS_SKIPPED;  //Все подкасты пропущены // All Podcasts skipped
+        StatusBar.SimpleText:=' ' + ID_PODCASTS_SKIPPED;  // Все подкасты пропущены // All Podcasts skipped
 
     end else
-      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [DownloadCount - ErrorCount, DownloadCount]); //Ошибка загрузки / Download error
+      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [DownloadCount - ErrorCount, DownloadCount]); // Ошибка загрузки / Download error
 
-    //Сохранение ссылок на загруженные подкасты, чтобы не загружать их снова / Save links to downloaded podcasts to not download them again
+    // Сохранение ссылок на загруженные подкасты, чтобы не загружать их снова / Save links to downloaded podcasts to not download them again
     Downloaded.Add(Download.Text);
 
-    //Удаляем пустые строки / Remove the blank lines
+    // Удаляем пустые строки / Remove the blank lines
     for i:=Downloaded.Count - 1 downto 0 do
       if Length(Trim(Downloaded.Strings[i])) = 0 then Downloaded.Delete(i);
-    //Сохранение списка загруженных подкастов / Save list of podcasts downloaded links  
+    // Сохранение списка загруженных подкастов / Save list of podcasts downloaded links
     Downloaded.SaveToFile(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt');
 
-  end else StatusBar.SimpleText:=' ' + ID_PODCASTS_NOT_FOUND; //Новых подкастов не найдено / Not found new podcasts
+  end else StatusBar.SimpleText:=' ' + ID_PODCASTS_NOT_FOUND; // Новых подкастов не найдено / Not found new podcasts
 
   RefreshBtn.Visible:=true;
   CancelBtn.Visible:=false;
@@ -420,7 +420,7 @@ begin
     RssListMemo.Lines.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
   RssChanged:=false;
 
-  //Перевод / Translate
+  // Перевод / Translate
   if FileExists(ExtractFilePath(ParamStr(0)) + 'Languages\' + GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini') then
     LangFile:=GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini'
   else
@@ -479,7 +479,7 @@ begin
   Downloaded.LoadFromFile('Downloaded.txt');
   Settings.StatusLbl.Caption:=' ' + ID_STAGE_1;
   Settings.ProgressBar.Max:=RSSListMemo.Lines.Count - 1;
-  //Создание общего списка / Creating a common list
+  // Создание общего списка / Creating a common list
   for i:=RssListMemo.Lines.Count - 1 downto 0 do begin
     if Trim(RssListMemo.Lines.Strings[i]) = '' then Continue;
     if HTTPCheck(RssListMemo.Lines.Strings[i]) = false then begin
@@ -494,13 +494,13 @@ begin
   if Error = false then begin
     Settings.StatusLbl.Caption:=' ' + ID_STAGE_2;
     Settings.ProgressBar.Max:=Downloaded.Count - 1;
-    //Создание нового списка загруженных подкастов /Create a new list of downloaded podcasts
+    // Создание нового списка загруженных подкастов /Create a new list of downloaded podcasts
     for j:=Downloaded.Count - 1 downto 0 do begin
       if Pos(Downloaded.Strings[j], Source) > 0 then Links.Add(Downloaded.Strings[j]);
       Application.ProcessMessages;
       Settings.ProgressBar.Position:=Downloaded.Count - 1 - j;
     end;
-    //Сортировка / Sort
+    // Сортировка / Sort
     Links.Sort;
     Links.SaveToFile('Downloaded.txt');
 
@@ -524,7 +524,7 @@ end;
 procedure TMain.RSSListMemoKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  //Убираем баг скрытия контролов
+  // Убираем баг скрытия контролов
   if Key = VK_MENU then
     Key:=0;
 end;
@@ -532,7 +532,7 @@ end;
 procedure TMain.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  //Убираем баг скрытия контролов
+  // Убираем баг скрытия контролов
   if Key = VK_MENU then
     Key:=0;
 end;
