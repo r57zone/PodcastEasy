@@ -24,8 +24,14 @@ type
     ProgressBar: TProgressBar;
     DownloadedPodcastsDescLbl: TLabel;
     DownloadedPodcastsGB: TGroupBox;
-    StatusLbl: TLabel;
     AboutBtn: TButton;
+    ProxyGB: TGroupBox;
+    AddressLbl: TLabel;
+    AddressEdt: TEdit;
+    PortLbl: TLabel;
+    PortEdt: TEdit;
+    ProxyClrBtn: TButton;
+    StatusLbl: TLabel;
     procedure OkBtnClick(Sender: TObject);
     procedure ChooseBtnClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -39,6 +45,7 @@ type
     procedure EditPathKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure AboutBtnClick(Sender: TObject);
+    procedure ProxyClrBtnClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -66,6 +73,9 @@ begin
     DownloadPodcasts:=false;
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Setup.ini');
   Ini.WriteString('Main', 'Path', EditPath.Text);
+  Ini.WriteString('Proxy', 'Address', Trim(AddressEdt.Text));
+  Ini.WriteString('Proxy', 'Port', Trim(PortEdt.Text));
+
   Ini.Free;
   Close;
 end;
@@ -110,6 +120,8 @@ var
   Ini: TIniFile;
 begin
   EditPath.Text:=DownloadPath;
+  AddressEdt.Text:=ProxyAddress;
+  PortEdt.Text:=ProxyPort;
 
   //Перевод / Translate
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
@@ -120,6 +132,9 @@ begin
   DownloadPodcastsCB.Caption:=Ini.ReadString('Settings', 'ID_DOWNLOAD_PODCASTS', '');
   ImportBtn.Caption:=Ini.ReadString('Settings', 'ID_IMPORT', '');
   ExportBtn.Caption:=Ini.ReadString('Settings', 'ID_EXPORT', '');
+  ProxyGB.Caption:=Ini.ReadString('Settings', 'ID_PROXY', '');
+  AddressLbl.Caption:=Ini.ReadString('Settings', 'ID_ADDRESS', '');
+  PortLbl.Caption:=Ini.ReadString('Settings', 'ID_PORT', '');
   ID_OPML_FILE_SAVED:=Ini.ReadString('Settings', 'ID_OPML_FILE_SAVED', '');
   OkBtn.Caption:=Ini.ReadString('Settings', 'ID_OK', '');
   CancelBtn.Caption:=Ini.ReadString('Settings', 'ID_CANCEL', '');
@@ -130,6 +145,8 @@ begin
   RemLinksBtn.Caption:=Ini.ReadString('Settings', 'ID_REMOVE_OLD_LINKS', '');
   DownloadedPodcastsDescLbl.Caption:=StringReplace(Ini.ReadString('Settings', 'ID_DOWNLOADED_PODCASTS_DESCRIPTION', ''), '\n', #13#10, [rfReplaceAll]);
   Ini.Free;
+
+  SetWindowLong(PortEdt.Handle, GWL_STYLE, GetWindowLong(PortEdt.Handle, GWL_STYLE) or ES_NUMBER);
 end;
 
 procedure TSettings.CancelBtnClick(Sender: TObject);
@@ -221,10 +238,16 @@ end;
 
 procedure TSettings.AboutBtnClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Caption + ' 1.0' + #13#10 +
-  ID_LAST_UPDATE + ' 18.12.2020' + #13#10 +
+  Application.MessageBox(PChar(Caption + ' 1.1' + #13#10 +
+  ID_LAST_UPDATE + ' 03.03.2022' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
   'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
+end;
+
+procedure TSettings.ProxyClrBtnClick(Sender: TObject);
+begin
+  AddressEdt.Text:='';
+  PortEdt.Text:='';
 end;
 
 end.

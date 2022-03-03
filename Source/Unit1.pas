@@ -8,7 +8,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, WinInet, XPMan, ComCtrls, IniFiles, ShellAPI, ExtCtrls,
-  Buttons, RegExpr;
+  Buttons, RegExpr, UrlMon;
 
 type
   TMain = class(TForm)
@@ -40,6 +40,7 @@ type
 var
   Main: TMain;
   DownloadPath, LangFile: string;
+  ProxyAddress, ProxyPort: string;
   StopDownload, DownloadPodcasts, RssChanged: boolean;
 
   //Перевод / Translate
@@ -53,9 +54,6 @@ var
   ID_STAGE_1, ID_STAGE_2, ID_REMOVED_LINKS, ID_FAILED_GET_RSS: string;
 
   ID_GUIDE: string;
-
-  //StandartModularProgram
-  ID_UPLOADED_PODCASTS_TO_DEVICE: string;
 
 implementation
 
@@ -345,7 +343,7 @@ begin
 
   end;
 
-  RefreshBtn.Visible:=false;
+  //RefreshBtn.Visible:=false;
   CancelBtn.Visible:=true;
   Main.Refresh;
 
@@ -395,10 +393,25 @@ begin
   RssListMemo.ReadOnly:=false;
   SettingsBtn.Enabled:=true;
 
+  RefreshBtn.Refresh;
+  OpenFolderBtn.Refresh;
+
   Download.Free;
   GetRss.Free;
   Downloaded.Free;
   RegExp.Free;
+end;
+
+procedure ProxyInit(ProxyAddress, ProxyPort: string);
+var
+  PIInfo: PInternetProxyInfo;
+begin
+  New(PIInfo);
+  PIInfo^.dwAccessType:=INTERNET_OPEN_TYPE_PROXY;
+  PIInfo^.lpszProxy:=PChar(ProxyAddress + ':' + ProxyPort);
+  PIInfo^.lpszProxyBypass:=PChar('');
+  UrlMkSetSessionOption(INTERNET_OPTION_PROXY, PIInfo, SizeOf(Internet_Proxy_Info), 0);
+  Dispose(PIInfo);
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
@@ -412,7 +425,12 @@ begin
   DownloadPath:=Ini.ReadString('Main', 'Path', '');
   if Trim(DownloadPath) = '' then
     DownloadPath:=GetEnvironmentVariable('USERPROFILE') + '\Desktop\';
+  ProxyAddress:=Ini.ReadString('Proxy', 'Address', '');
+  ProxyPort:=Ini.ReadString('Proxy', 'Port', '');
   Ini.Free;
+
+  if (ProxyAddress <> '') and (ProxyPort <> '') then
+    ProxyInit(ProxyAddress, ProxyPort);
 
   Application.Title:=Caption;
 
@@ -441,15 +459,14 @@ begin
   ID_PODCASTS_NOT_FOUND:=Ini.ReadString('Main', 'ID_PODCASTS_NOT_FOUND', '');
   ID_DOWNLOAD_ERROR:=Ini.ReadString('Main', 'ID_DOWNLOAD_ERROR', '');
 
-  ID_ABOUT_TITLE:=Ini.ReadString('Main', 'ID_ABOUT_TITLE', '');
-  ID_LAST_UPDATE:=Ini.ReadString('Main', 'ID_LAST_UPDATE', '');
+  ID_ABOUT_TITLE:=Ini.ReadString('About', 'ID_ABOUT_TITLE', '');
+  ID_LAST_UPDATE:=Ini.ReadString('About', 'ID_LAST_UPDATE', '');
 
   ID_STAGE_1:=Ini.ReadString('Main', 'ID_STAGE_1', '');
   ID_STAGE_2:=Ini.ReadString('Main', 'ID_STAGE_2', '');
   ID_REMOVED_LINKS:=Ini.ReadString('Main', 'ID_REMOVED_LINKS', '');
   ID_FAILED_GET_RSS:=StringReplace(Ini.ReadString('Main', 'ID_FAILED_GET_RSS', ''), '\n', #13#10, [rfReplaceAll]);
 
-  ID_UPLOADED_PODCASTS_TO_DEVICE:=Ini.ReadString('Main', 'ID_UPLOADED_PODCASTS_TO_DEVICE', '');
   Ini.Free;
 end;
 
