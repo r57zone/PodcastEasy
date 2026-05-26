@@ -22,7 +22,7 @@ object Settings: TSettings
   object StatusLbl: TLabel
     Left = 168
     Top = 225
-    Width = 169
+    Width = 3
     Height = 13
     Alignment = taCenter
   end
@@ -93,14 +93,14 @@ object Settings: TSettings
       TabOrder = 0
       OnKeyDown = EditPathKeyDown
     end
-    object ChooseBtn: TButton
+    object SelectFolderBtn: TButton
       Left = 182
       Top = 34
       Width = 75
       Height = 23
       Caption = #1042#1099#1073#1088#1072#1090#1100
       TabOrder = 1
-      OnClick = ChooseBtnClick
+      OnClick = SelectFolderBtnClick
     end
     object DownloadPodcastsCB: TCheckBox
       Left = 8
@@ -159,7 +159,7 @@ object Settings: TSettings
     Top = 104
     Width = 105
     Height = 105
-    Caption = #1055#1088#1086#1082#1089#1080
+    Caption = 'HTTP '#1087#1088#1086#1082#1089#1080
     TabOrder = 3
     object AddressLbl: TLabel
       Left = 8

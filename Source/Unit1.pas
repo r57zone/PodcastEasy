@@ -1,14 +1,14 @@
 unit Unit1;
 
-{       Podcast Easy by r57zone
-https://github.com/r57zone/Podcast-Easy }
+// Podcast Easy by r57zone
+// https://github.com/r57zone/PodcastEasy
 
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, WinInet, XPMan, ComCtrls, IniFiles, ShellAPI, ExtCtrls,
-  Buttons, RegExpr, UrlMon;
+  Buttons, RegExpr, UrlMon, ShlObj;
 
 type
   TMain = class(TForm)
@@ -39,21 +39,19 @@ type
 
 var
   Main: TMain;
-  DownloadPath, LangFile: string;
+  AppFilePath, DownloadPath, LangFileName: string;
   ProxyAddress, ProxyPort: string;
-  StopDownload, DownloadPodcasts, RssChanged: boolean;
+  StopDownload, DownloadPodcasts, RSSChanged: boolean;
 
   //Перевод / Translate
   //Main
-  ID_NEW_FEED_QUESTION, ID_CHECK_FEED: string;
-  ID_NEW_PODCAST, ID_DOWNLOAD_PODCASTS, ID_PODCASTS_DOWNLOADED, ID_PODCASTS_SKIPPED, ID_PODCASTS_NOT_FOUND: string;
-  ID_DOWNLOAD_ERROR: string;
+  IDS_NEW_FEED_QUESTION, IDS_CHECK_FEED: string;
+  IDS_NEW_PODCAST, IDS_DOWNLOAD_PODCASTS, IDS_PODCASTS_DOWNLOADED, IDS_PODCASTS_SKIPPED, IDS_PODCASTS_NOT_FOUND: string;
+  IDS_DOWNLOAD_ERROR: string;
   //About
-  ID_ABOUT_TITLE, ID_LAST_UPDATE: string;
+  IDS_ABOUT_TITLE, IDS_LAST_UPDATE: string;
   //Remove links
-  ID_STAGE_1, ID_STAGE_2, ID_REMOVED_LINKS, ID_FAILED_GET_RSS: string;
-
-  ID_GUIDE: string;
+  IDS_STAGE_1, IDS_STAGE_2, IDS_REMOVED_LINKS, IDS_FAILED_GET_RSS: string;
 
 implementation
 
@@ -79,11 +77,13 @@ begin
   CloseFile(F);
 end;
 
-function GetLocaleInformation(Flag: integer): string;
+function GetUserDefaultUILanguage: LANGID; stdcall; external 'kernel32.dll';
+
+function GetLocaleInformation(Flag: integer): string; // If there are multiple languages in the system (with sorting) / Если в системе несколько языков (с сортировкой)
 var
-  pcLCA: array [0..20] of Char;
+  pcLCA: array [0..63] of Char;
 begin
-  if GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0 then
+  if GetLocaleInfo((DWORD(SORT_DEFAULT) shl 16) or Word(GetUserDefaultUILanguage), Flag, pcLCA, Length(pcLCA)) <= 0 then
     pcLCA[0]:=#0;
   Result:=pcLCA;
 end;
@@ -95,7 +95,7 @@ var
   dwCode: array [1..20] of Char;
 begin
   Result:=false;
-  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  hSession:=InternetOpen('Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
   
     if Copy(LowerCase(URL), 1, 8) = 'https://' then
@@ -124,32 +124,34 @@ var
   StrStream: TStringStream;
 begin
   Result:='';
-  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  hSession:=InternetOpen('Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
 
-    if Copy(LowerCase(URL), 1, 8) = 'https://' then
-      dwFlags:=INTERNET_FLAG_SECURE
-    else
-      dwFlags:=INTERNET_FLAG_RELOAD;
+  dwFlags:=INTERNET_FLAG_RELOAD or INTERNET_FLAG_NO_CACHE_WRITE;
+  if Copy(LowerCase(URL), 1, 8) = 'https://' then
+    dwFlags:=dwFlags or INTERNET_FLAG_SECURE;
 
     hUrl:=InternetOpenUrl(hSession, PChar(URL), nil, 0, dwFlags, 0);
     if Assigned(hUrl) then begin
       StrStream:=TStringStream.Create('');
       try
-        repeat
-          FillChar(Buffer, SizeOf(Buffer), 0);
-          BufferLen:=0;
-          if InternetReadFile(hURL, @Buffer, SizeOf(Buffer), BufferLen) then
-            StrStream.WriteBuffer(Buffer, BufferLen)
-          else
-            Break;
-          Application.ProcessMessages;
-        until BufferLen = 0;
-        Result:=StrStream.DataString;
-      except
-        Result:='';
+        try
+          repeat
+            FillChar(Buffer, SizeOf(Buffer), 0);
+            BufferLen:=0;
+            if InternetReadFile(hURL, @Buffer, SizeOf(Buffer), BufferLen) then
+              StrStream.WriteBuffer(Buffer, BufferLen)
+            else
+              Break;
+            Application.ProcessMessages;
+          until BufferLen = 0;
+          Result:=StrStream.DataString;
+        except
+          Result:='';
+        end;
+      finally
+        StrStream.Free;
       end;
-      StrStream.Free;
 
       InternetCloseHandle(hUrl);
     end;
@@ -165,13 +167,12 @@ var
   dwIndex, dwBufferLen, dwFlags: DWORD;
 begin
   Result:=0;
-  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  hSession:=InternetOpen('Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
 
+    dwFlags:=INTERNET_FLAG_RELOAD or INTERNET_FLAG_NO_CACHE_WRITE;
     if Copy(LowerCase(URL), 1, 8) = 'https://' then
-      dwFlags:=INTERNET_FLAG_SECURE
-    else
-      dwFlags:=INTERNET_FLAG_RELOAD;
+      dwFlags:=dwFlags or INTERNET_FLAG_SECURE;
 
     hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, dwFlags, 0);
     if Assigned(hFile) then begin
@@ -192,7 +193,8 @@ var
   FoundData: TSearchRec;
 begin
   FindFirst(FileName, faAnyFile, FoundData);
-  Result:=(Int64(FoundData.FindData.nFileSizeHigh) * MAXDWORD) + Int64(FoundData.FindData.nFileSizeLow);
+  //Result:=(Int64(FoundData.FindData.nFileSizeHigh) * MAXDWORD) + Int64(FoundData.FindData.nFileSizeLow);
+  Result:=(int64(FoundData.FindData.nFileSizeHigh) shl 32) or int64(FoundData.FindData.nFileSizeLow);
   FindClose(FoundData);
 end;
 
@@ -204,10 +206,11 @@ var
   F: file;
   FileSize, FileExistsCounter: int64;
   CopySize: int64;
+  DownloadPercent, LastDownloadPercent: integer;
 begin
   FileSize:=HTTPGetSize(URL); // Получаем размер файла / Get file size
 
-  hSession:=InternetOpen('Mozilla/4.0 (MSIE 6.0; Windows NT 5.1)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  hSession:=InternetOpen('Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko)', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
   if Assigned(hSession) then begin
 
     hFile:=InternetOpenURL(hSession, PChar(URL), nil, 0, 0, 0);
@@ -229,11 +232,17 @@ begin
           end;
         end;
         ReWrite(F, 1);
+        DownloadPercent:=0;
+        LastDownloadPercent:=-1;
         repeat
           if InternetReadFile(hFile, @Buffer, SizeOf(Buffer), BufferLen) then begin
             BlockWrite(F, Buffer, BufferLen);
             CopySize:=CopySize + SizeOf(Buffer);
-            Main.StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount, Round( CopySize / (FileSize / 100) )]);
+            DownloadPercent:=Round( CopySize / (FileSize / 100) );
+            if LastDownloadPercent <> DownloadPercent then begin
+              Main.StatusBar.SimpleText:=' ' + Format(IDS_DOWNLOAD_PODCASTS, [DownloadIndex, DownloadCount, DownloadPercent]);
+              LastDownloadPercent:=DownloadPercent;
+            end;
             if StopDownload then // По запросу останавливаем загрузку / Stop download on request
               break;
           end else
@@ -251,11 +260,13 @@ begin
   end;
 
   // Проверка на целостность файла / Checking file size
-  if FileSize <> GetFileSize(Path + DownloadedFileName) then begin
+  if (FileSize <= 0) or (FileSize = GetFileSize(Path + DownloadedFileName)) then
+    Result:=true
+  else begin
     // Удаляем неполный файл / Delete the incomplete file
     DeleteFile(Path + DownloadedFileName);
     Result:=false;
-  end else Result:=true;
+  end
 end;
 
 procedure TMain.RefreshBtnClick(Sender: TObject);
@@ -263,14 +274,14 @@ const
   PodcastExt = 'mp3|aac|ogg|mp4';
 var
   RegExp: TRegExpr;
-  GetRss, Downloaded, Download: TStringList;
+  GetRSS, Downloaded, Download: TStringList;
   i, j, ErrorCount, DownloadCount, DownloadIndex: integer;
   Error: boolean;
   DownloadedFileName: string;
 begin
   // Пропуск загрузки новых подкастов для новой ленты / Skip download new podcasts for new feed
-  if RssChanged then
-    case MessageBox(Handle, PChar(StringReplace(ID_NEW_FEED_QUESTION, '\n', #13#10, [rfReplaceAll])), PChar(Caption), MB_YESNO + MB_ICONQUESTION) of
+  if RSSChanged then
+    case MessageBox(Handle, PChar(StringReplace(IDS_NEW_FEED_QUESTION, '\n', #13#10, [rfReplaceAll])), PChar(Caption), MB_YESNO + MB_ICONQUESTION) of
       6: DownloadPodcasts:=false;
       7: DownloadPodcasts:=true;
     end;
@@ -280,13 +291,13 @@ begin
   Error:=false; // Ошибка загрузки файлов / Error downloaded files
   ErrorCount:=0; // Счетчик неполных файлов / Counter incomplete files
   DownloadCount:=0; // Счетчик файлов на загрузку / Counter files to download
-  GetRss:=TStringList.Create; // Лента / Rss
+  GetRSS:=TStringList.Create; // Лента / RSS
   Downloaded:=TStringList.Create; // Список ссылок загруженных подкастов / List of links downloaded podcasts
   Download:=TStringList.Create;
   StopDownload:=false; // Дать возможность завершить загрузку / Allow abort download
   // Отключение кнопок / Disable buttons
   RefreshBtn.Enabled:=false;
-  RssListMemo.ReadOnly:=true;
+  RSSListMemo.ReadOnly:=true;
   SettingsBtn.Enabled:=false;
   Application.ProcessMessages; // Мгновенное отключение кнопок / Instant disable buttons
 
@@ -294,27 +305,27 @@ begin
     Downloaded.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt');
 
   // Проверка лент на новые подкасты / Check feed for new podcasts
-  for i:=0 to RssListMemo.Lines.Count - 1 do begin
+  for i:=0 to RSSListMemo.Lines.Count - 1 do begin
 
-    if Trim(RssListMemo.Lines.Strings[i]) = '' then
+    if Trim(RSSListMemo.Lines.Strings[i]) = '' then
       Continue;
 
-    GetRss.Text:=HTTPGet(RssListMemo.Lines.Strings[i]);
+    GetRSS.Text:=HTTPGet(RSSListMemo.Lines.Strings[i]);
 
-    StatusBar.SimpleText:=' ' + Format(ID_CHECK_FEED, [i + 1, RssListMemo.Lines.Count]);
-    if Trim(GetRss.Text) = '' then
+    StatusBar.SimpleText:=' ' + Format(IDS_CHECK_FEED, [i + 1, RSSListMemo.Lines.Count]);
+    if Trim(GetRSS.Text) = '' then
       Continue;
 
     // Atom, устаревший стандарт / old standard
     RegExp.Expression:='(?i)<content.*src="(.*(' + PodcastExt + '))"';
 
     try
-      if RegExp.Exec(GetRss.Text) then
+      if RegExp.Exec(GetRSS.Text) then
         repeat
           if (Pos(RegExp.Match[1], Download.Text) = 0) and // Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
           (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  // Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
           (HTTPCheck(RegExp.Match[1])) then begin
-            StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
+            StatusBar.SimpleText:=' ' + IDS_NEW_PODCAST + ' ' + Copy(RSSListMemo.Lines.Strings[i], 1, 20) + '...';
 
             // Добавление ссылки в список для загрузки / Add link to download list
             Download.Add(RegExp.Match[1]);
@@ -327,12 +338,12 @@ begin
     RegExp.Expression:='(?i)<enclosure.*url="(.*(' + PodcastExt + '))"';
 
     try
-      if RegExp.Exec(GetRss.Text) then
+      if RegExp.Exec(GetRSS.Text) then
         repeat
           if (Pos(RegExp.Match[1], Download.Text) = 0) and // Проверяем добавлялась ли ссылка в список загрузки / Checking if the link was added to the download list
           (Pos(RegExp.Match[1], Downloaded.Text) = 0) and  // Проверяем была ли загружена ссылка ранее / Checking if the link was previously downloaded
           (HTTPCheck(RegExp.Match[1])) then begin
-            StatusBar.SimpleText:=' ' + ID_NEW_PODCAST + ' ' + Copy(RssListMemo.Lines.Strings[i], 1, 20) + '...';
+            StatusBar.SimpleText:=' ' + IDS_NEW_PODCAST + ' ' + Copy(RSSListMemo.Lines.Strings[i], 1, 20) + '...';
 
             // Добавление ссылки в список для загрузки / Add link to download list
             Download.Add(RegExp.Match[1]);
@@ -367,12 +378,12 @@ begin
     if Error = false then begin
 
       if DownloadPodcasts then
-        StatusBar.SimpleText:=' ' + ID_PODCASTS_DOWNLOADED  // Все подкасты загружены // All Podcasts downloaded
+        StatusBar.SimpleText:=' ' + IDS_PODCASTS_DOWNLOADED  // Все подкасты загружены // All Podcasts downloaded
       else
-        StatusBar.SimpleText:=' ' + ID_PODCASTS_SKIPPED;  // Все подкасты пропущены // All Podcasts skipped
+        StatusBar.SimpleText:=' ' + IDS_PODCASTS_SKIPPED;  // Все подкасты пропущены // All Podcasts skipped
 
     end else
-      StatusBar.SimpleText:=' ' + Format(ID_DOWNLOAD_ERROR, [DownloadCount - ErrorCount, DownloadCount]); // Ошибка загрузки / Download error
+      StatusBar.SimpleText:=' ' + Format(IDS_DOWNLOAD_ERROR, [DownloadCount - ErrorCount, DownloadCount]); // Ошибка загрузки / Download error
 
     // Сохранение ссылок на загруженные подкасты, чтобы не загружать их снова / Save links to downloaded podcasts to not download them again
     Downloaded.Add(Download.Text);
@@ -383,21 +394,21 @@ begin
     // Сохранение списка загруженных подкастов / Save list of podcasts downloaded links
     Downloaded.SaveToFile(ExtractFilePath(ParamStr(0)) + 'Downloaded.txt');
 
-  end else StatusBar.SimpleText:=' ' + ID_PODCASTS_NOT_FOUND; // Новых подкастов не найдено / Not found new podcasts
+  end else StatusBar.SimpleText:=' ' + IDS_PODCASTS_NOT_FOUND; // Новых подкастов не найдено / Not found new podcasts
 
   RefreshBtn.Visible:=true;
   CancelBtn.Visible:=false;
 
   //Включение кнопок / Enable buttons
   RefreshBtn.Enabled:=true;
-  RssListMemo.ReadOnly:=false;
+  RSSListMemo.ReadOnly:=false;
   SettingsBtn.Enabled:=true;
 
   RefreshBtn.Refresh;
   OpenFolderBtn.Refresh;
 
   Download.Free;
-  GetRss.Free;
+  GetRSS.Free;
   Downloaded.Free;
   RegExp.Free;
 end;
@@ -414,17 +425,26 @@ begin
   Dispose(PIInfo);
 end;
 
+function GetDesktopPath: string;
+var
+  Path: array[0..MAX_PATH] of Char;
+begin
+  SHGetSpecialFolderPath(0, Path, CSIDL_DESKTOPDIRECTORY, False);
+  Result := StrPas(Path);
+end;
+
 procedure TMain.FormCreate(Sender: TObject);
 var
   Ini: TIniFile;
+  SystemLang, ForceLangFile: string;
+  i: integer;
 begin
   //RefreshBtn.ControlState:=[csFocusing];
   DownloadPodcasts:=true;
 
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Setup.ini');
   DownloadPath:=Ini.ReadString('Main', 'Path', '');
-  if Trim(DownloadPath) = '' then
-    DownloadPath:=GetEnvironmentVariable('USERPROFILE') + '\Desktop\';
+  if Trim(DownloadPath) = '' then DownloadPath:=GetDesktopPath + '\';
   ProxyAddress:=Ini.ReadString('Proxy', 'Address', '');
   ProxyPort:=Ini.ReadString('Proxy', 'Port', '');
   Ini.Free;
@@ -433,47 +453,63 @@ begin
     ProxyInit(ProxyAddress, ProxyPort);
 
   Application.Title:=Caption;
+  AppFilePath:=ExtractFilePath(ParamStr(0));
 
-  if FileExists(ExtractFilePath(ParamStr(0)) + 'RSS.txt') then
-    RssListMemo.Lines.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
-  RssChanged:=false;
+  if FileExists(AppFilePath + 'RSS.txt') then
+    RSSListMemo.Lines.LoadFromFile(AppFilePath + 'RSS.txt');
+  RSSChanged:=false;
+
+  for i:=1 to ParamCount do
+    if ParamStr(i) = '-lang' then
+      ForceLangFile:=ParamStr(i + 1);
 
   // Перевод / Translate
-  if FileExists(ExtractFilePath(ParamStr(0)) + 'Languages\' + GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini') then
-    LangFile:=GetLocaleInformation(LOCALE_SENGLANGUAGE) + '.ini'
-  else
-    LangFile:='English.ini';
+  SystemLang:=GetLocaleInformation(LOCALE_SENGLANGUAGE);
+  if Pos('Chinese', SystemLang) > 0  then begin
+    if Pos('Traditional', SystemLang) > 0 then
+      SystemLang:='Chinese (Traditional)'
+    else
+      SystemLang:='Chinese (Simplified)';
+  end else if Pos('Spanish', SystemLang) > 0 then
+    SystemLang:='Spanish'
+  else if Pos('Portuguese', SystemLang) > 0 then
+    SystemLang:='Portuguese';
 
-  Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
+  if ForceLangFile <> '' then SystemLang:=ForceLangFile;
+  LangFileName:=SystemLang + '.ini';
 
-  RefreshBtn.Caption:=Ini.ReadString('Main', 'ID_REFRESH', '');
-  CancelBtn.Caption:=Ini.ReadString('Main', 'ID_CANCEL', '');
-  OpenFolderBtn.Caption:=Ini.ReadString('Main', 'ID_DOWNLOADS', '');
+  if not FileExists(AppFilePath + 'Languages\' + LangFileName) then
+    LangFileName:='English.Ini';
+  Ini:=TIniFile.Create(AppFilePath + 'Languages\' + LangFileName);
 
-  ID_NEW_FEED_QUESTION:=Ini.ReadString('Main', 'ID_NEW_FEED_QUESTION', '');
-  ID_CHECK_FEED:=Ini.ReadString('Main', 'ID_CHECK_FEED', '');
-  ID_NEW_PODCAST:=Ini.ReadString('Main', 'ID_NEW_PODCAST', '');
-  ID_DOWNLOAD_PODCASTS:=Ini.ReadString('Main', 'ID_DOWNLOAD_PODCASTS', '');
-  ID_PODCASTS_DOWNLOADED:=Ini.ReadString('Main', 'ID_PODCASTS_DOWNLOADED', '');
-  ID_PODCASTS_SKIPPED:=Ini.ReadString('Main', 'ID_PODCASTS_SKIPPED', '');
-  ID_PODCASTS_NOT_FOUND:=Ini.ReadString('Main', 'ID_PODCASTS_NOT_FOUND', '');
-  ID_DOWNLOAD_ERROR:=Ini.ReadString('Main', 'ID_DOWNLOAD_ERROR', '');
+  RefreshBtn.Caption:=Ini.ReadString('Main', 'REFRESH', 'Refresh');
+  CancelBtn.Caption:=Ini.ReadString('Main', 'CANCEL', 'Cancel');
+  OpenFolderBtn.Caption:=Ini.ReadString('Main', 'DOWNLOADS', 'Downloads');
 
-  ID_ABOUT_TITLE:=Ini.ReadString('About', 'ID_ABOUT_TITLE', '');
-  ID_LAST_UPDATE:=Ini.ReadString('About', 'ID_LAST_UPDATE', '');
+  IDS_NEW_FEED_QUESTION:=Ini.ReadString('Main', 'NEW_FEED_QUESTION', 'After adding a new feed is recommended to\nskip downloading all new podcasts.\n\nSkip the download podcasts (Yes) or\ndownload all podcasts of new feed (No)?');
+  IDS_CHECK_FEED:=Ini.ReadString('Main', 'CHECK_FEED', 'Checking news feeds: %d of %d');
+  IDS_NEW_PODCAST:=Ini.ReadString('Main', 'NEW_PODCAST', 'Found new podcast on');
+  IDS_DOWNLOAD_PODCASTS:=Ini.ReadString('Main', 'DOWNLOAD_PODCASTS', 'Downloading podcasts: %d of %d, current %d%%');
+  IDS_PODCASTS_DOWNLOADED:=Ini.ReadString('Main', 'PODCASTS_DOWNLOADED', 'All podcasts downloaded');
+  IDS_PODCASTS_SKIPPED:=Ini.ReadString('Main', 'PODCASTS_SKIPPED', 'All podcasts skipped');
+  IDS_PODCASTS_NOT_FOUND:=Ini.ReadString('Main', 'PODCASTS_NOT_FOUND', 'New podcasts not found');
+  IDS_DOWNLOAD_ERROR:=Ini.ReadString('Main', 'DOWNLOAD_ERROR', 'Download error, downloaded podcasts: %d of %d');
 
-  ID_STAGE_1:=Ini.ReadString('Main', 'ID_STAGE_1', '');
-  ID_STAGE_2:=Ini.ReadString('Main', 'ID_STAGE_2', '');
-  ID_REMOVED_LINKS:=Ini.ReadString('Main', 'ID_REMOVED_LINKS', '');
-  ID_FAILED_GET_RSS:=StringReplace(Ini.ReadString('Main', 'ID_FAILED_GET_RSS', ''), '\n', #13#10, [rfReplaceAll]);
+  IDS_ABOUT_TITLE:=Ini.ReadString('About', 'ABOUT_TITLE', 'About...');
+  IDS_LAST_UPDATE:=Ini.ReadString('About', 'LAST_UPDATE', 'Last update:');
+
+  IDS_STAGE_1:=Ini.ReadString('Main', 'STAGE_1', 'Preparing the common list');
+  IDS_STAGE_2:=Ini.ReadString('Main', 'STAGE_2', 'Checking links in list');
+  IDS_REMOVED_LINKS:=Ini.ReadString('Main', 'REMOVED_LINKS', 'Removed outdated links: ');
+  IDS_FAILED_GET_RSS:=StringReplace(Ini.ReadString('Main', 'FAILED_GET_RSS', 'Error, feed "%s" not available.\nIf it ceased to exist, then simply remove it and try again.'), '\n', #13#10, [rfReplaceAll]);
 
   Ini.Free;
 end;
 
 procedure TMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if RssChanged then
-    RssListMemo.Lines.SaveToFile(ExtractFilePath(ParamStr(0)) + 'RSS.txt');
+  if RSSChanged then
+    RSSListMemo.Lines.SaveToFile(AppFilePath + 'RSS.txt');
 end;
 
 procedure TMain.OpenFolderBtnClick(Sender: TObject);
@@ -488,28 +524,28 @@ var
   Error: boolean;
 begin
   Settings.ProgressBar.Visible:=true;
-  RssListMemo.Enabled:=false;
+  RSSListMemo.Enabled:=false;
   RefreshBtn.Enabled:=false;
   Error:=false;
   Downloaded:=TStringList.Create;
   Links:=TStringList.Create;
   Downloaded.LoadFromFile('Downloaded.txt');
-  Settings.StatusLbl.Caption:=' ' + ID_STAGE_1;
+  Settings.StatusLbl.Caption:=' ' + IDS_STAGE_1;
   Settings.ProgressBar.Max:=RSSListMemo.Lines.Count - 1;
   // Создание общего списка / Creating a common list
-  for i:=RssListMemo.Lines.Count - 1 downto 0 do begin
-    if Trim(RssListMemo.Lines.Strings[i]) = '' then Continue;
-    if HTTPCheck(RssListMemo.Lines.Strings[i]) = false then begin
+  for i:=RSSListMemo.Lines.Count - 1 downto 0 do begin
+    if Trim(RSSListMemo.Lines.Strings[i]) = '' then Continue;
+    if HTTPCheck(RSSListMemo.Lines.Strings[i]) = false then begin
       Error:=true;
       break;
     end;
-    Source:=Source + #13#10 + HTTPGet(RssListMemo.Lines.Strings[i]);
+    Source:=Source + #13#10 + HTTPGet(RSSListMemo.Lines.Strings[i]);
     Application.ProcessMessages;
-    Settings.ProgressBar.Position:=RssListMemo.Lines.Count - 1 - i;
+    Settings.ProgressBar.Position:=RSSListMemo.Lines.Count - 1 - i;
   end;
   Settings.ProgressBar.Position:=0;
   if Error = false then begin
-    Settings.StatusLbl.Caption:=' ' + ID_STAGE_2;
+    Settings.StatusLbl.Caption:=' ' + IDS_STAGE_2;
     Settings.ProgressBar.Max:=Downloaded.Count - 1;
     // Создание нового списка загруженных подкастов /Create a new list of downloaded podcasts
     for j:=Downloaded.Count - 1 downto 0 do begin
@@ -521,21 +557,21 @@ begin
     Links.Sort;
     Links.SaveToFile('Downloaded.txt');
 
-    Application.MessageBox(PChar(ID_REMOVED_LINKS + ' ' + IntToStr(Downloaded.Count - Links.Count)), PChar(Caption), MB_ICONINFORMATION);
+    Application.MessageBox(PChar(IDS_REMOVED_LINKS + ' ' + IntToStr(Downloaded.Count - Links.Count)), PChar(Caption), MB_ICONINFORMATION);
   end else
-    Application.MessageBox(PChar(Format(ID_FAILED_GET_RSS, [RSSListMemo.Lines.Strings[i]])), PChar(Caption), MB_ICONWARNING);
+    Application.MessageBox(PChar(Format(IDS_FAILED_GET_RSS, [RSSListMemo.Lines.Strings[i]])), PChar(Caption), MB_ICONWARNING);
   Settings.StatusLbl.Caption:='';
   Downloaded.Free;
   Links.Free;
   Settings.ProgressBar.Position:=0;
   Settings.ProgressBar.Visible:=false;
-  RssListMemo.Enabled:=true;
+  RSSListMemo.Enabled:=true;
   RefreshBtn.Enabled:=true;
 end;
 
 procedure TMain.RSSListMemoChange(Sender: TObject);
 begin
-  RssChanged:=true;
+  RSSChanged:=true;
 end;
 
 procedure TMain.RSSListMemoKeyDown(Sender: TObject; var Key: Word;

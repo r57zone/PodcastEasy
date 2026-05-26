@@ -18,7 +18,7 @@ type
     CommonGB: TGroupBox;
     DownloadsPathLbl: TLabel;
     EditPath: TEdit;
-    ChooseBtn: TButton;
+    SelectFolderBtn: TButton;
     DownloadPodcastsCB: TCheckBox;
     RemLinksBtn: TButton;
     ProgressBar: TProgressBar;
@@ -33,7 +33,7 @@ type
     ProxyClrBtn: TButton;
     StatusLbl: TLabel;
     procedure OkBtnClick(Sender: TObject);
-    procedure ChooseBtnClick(Sender: TObject);
+    procedure SelectFolderBtnClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure CancelBtnClick(Sender: TObject);
     procedure ImportBtnClick(Sender: TObject);
@@ -55,7 +55,7 @@ type
 var
   Settings: TSettings;
   //язык / Language
-  ID_CHOOSE_DIR, ID_CHOOSE_DIR_ERROR, ID_OPML_FILE_SAVED, ID_ADDED_OPML_FEED: string;
+  IDS_SELECT_FOLDER, IDS_SELECT_FOLDER_ERROR, IDS_OPML_FILE_SAVED, IDS_ADDED_OPML_FEED: string;
 
 implementation
 
@@ -71,6 +71,7 @@ begin
     DownloadPodcasts:=true
   else
     DownloadPodcasts:=false;
+  DownloadPath:=EditPath.Text;
   Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Setup.ini');
   Ini.WriteString('Main', 'Path', EditPath.Text);
   Ini.WriteString('Proxy', 'Address', Trim(AddressEdt.Text));
@@ -102,17 +103,17 @@ begin
   end;
 end;
 
-procedure TSettings.ChooseBtnClick(Sender: TObject);
+procedure TSettings.SelectFolderBtnClick(Sender: TObject);
 var
   TempPath: string;
 begin
-  TempPath:=BrowseFolderDialog(PChar(ID_CHOOSE_DIR));
+  TempPath:=BrowseFolderDialog(PChar(IDS_SELECT_FOLDER));
   if TempPath <> '' then begin
     if TempPath[Length(TempPath)] <> '\' then
       TempPath:=TempPath + '\';
     EditPath.Text:=TempPath;
   end else
-    Application.MessageBox(PChar(ID_CHOOSE_DIR_ERROR), PChar(Caption), MB_ICONWARNING);
+    Application.MessageBox(PChar(IDS_SELECT_FOLDER_ERROR), PChar(Caption), MB_ICONWARNING);
 end;
 
 procedure TSettings.FormCreate(Sender: TObject);
@@ -124,26 +125,26 @@ begin
   PortEdt.Text:=ProxyPort;
 
   //ѕеревод / Translate
-  Ini:=TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Languages\' + LangFile);
-  Caption:=Ini.ReadString('Settings','ID_SETTINGS_TITLE','');
-  CommonGB.Caption:=Ini.ReadString('Settings', 'ID_COMMON', '') + ' ';
-  DownloadsPathLbl.Caption:=Ini.ReadString('Settings', 'ID_DOWNLOADS_PATH', '');
-  ChooseBtn.Caption:=Ini.ReadString('Settings', 'ID_CHOOSE', '');
-  DownloadPodcastsCB.Caption:=Ini.ReadString('Settings', 'ID_DOWNLOAD_PODCASTS', '');
-  ImportBtn.Caption:=Ini.ReadString('Settings', 'ID_IMPORT', '');
-  ExportBtn.Caption:=Ini.ReadString('Settings', 'ID_EXPORT', '');
-  ProxyGB.Caption:=Ini.ReadString('Settings', 'ID_PROXY', '');
-  AddressLbl.Caption:=Ini.ReadString('Settings', 'ID_ADDRESS', '');
-  PortLbl.Caption:=Ini.ReadString('Settings', 'ID_PORT', '');
-  ID_OPML_FILE_SAVED:=Ini.ReadString('Settings', 'ID_OPML_FILE_SAVED', '');
-  OkBtn.Caption:=Ini.ReadString('Settings', 'ID_OK', '');
-  CancelBtn.Caption:=Ini.ReadString('Settings', 'ID_CANCEL', '');
-  ID_CHOOSE_DIR:=Ini.ReadString('Settings', 'ID_CHOOSE_DIR', '');
-  ID_CHOOSE_DIR_ERROR:=Ini.ReadString('Settings', 'ID_CHOOSE_DIR_ERROR', '');
-  ID_ADDED_OPML_FEED:=Ini.ReadString('Settings', 'ID_ADDED_OPML_FEED', '');
-  DownloadedPodcastsGB.Caption:=Ini.ReadString('Settings', 'ID_DOWNLOADED_PODCASTS', '') + ' ';
-  RemLinksBtn.Caption:=Ini.ReadString('Settings', 'ID_REMOVE_OLD_LINKS', '');
-  DownloadedPodcastsDescLbl.Caption:=StringReplace(Ini.ReadString('Settings', 'ID_DOWNLOADED_PODCASTS_DESCRIPTION', ''), '\n', #13#10, [rfReplaceAll]);
+  Ini:=TIniFile.Create(AppFilePath + 'Languages\' + LangFileName);
+  Caption:=Ini.ReadString('Settings','SETTINGS_TITLE','Settings');
+  CommonGB.Caption:=Ini.ReadString('Settings', 'COMMON', 'Common') + ' ';
+  DownloadsPathLbl.Caption:=Ini.ReadString('Settings', 'DOWNLOADS_PATH', 'Path for download podcasts:');
+  SelectFolderBtn.Caption:=Ini.ReadString('Settings', 'SELECT', 'Select');
+  DownloadPodcastsCB.Caption:=Ini.ReadString('Settings', 'DOWNLOAD_PODCASTS', 'Download podcasts');
+  ImportBtn.Caption:=Ini.ReadString('Settings', 'IMPORT', 'Import');
+  ExportBtn.Caption:=Ini.ReadString('Settings', 'EXPORT', 'Export');
+  ProxyGB.Caption:=Ini.ReadString('Settings', 'PROXY', 'HTTP Proxy');
+  AddressLbl.Caption:=Ini.ReadString('Settings', 'ADDRESS', 'ADDRESS');
+  PortLbl.Caption:=Ini.ReadString('Settings', 'PORT', 'Port');
+  IDS_OPML_FILE_SAVED:=Ini.ReadString('Settings', 'OPML_FILE_SAVED', 'OPML file was successfully saved');
+  OkBtn.Caption:=Ini.ReadString('Settings', 'OK', 'OK');
+  CancelBtn.Caption:=Ini.ReadString('Settings', 'CANCEL', 'Cancel');
+  IDS_SELECT_FOLDER:=Ini.ReadString('Settings', 'SELECT_FOLDER', 'Select folder');
+  IDS_SELECT_FOLDER_ERROR:=Ini.ReadString('Settings', 'SELECT_FOLDER_ERROR', 'Folder not selected');
+  IDS_ADDED_OPML_FEED:=Ini.ReadString('Settings', 'ADDED_OPML_FEED', 'Added RSS feeds: ');
+  DownloadedPodcastsGB.Caption:=Ini.ReadString('Settings', 'DOWNLOADED_PODCASTS', 'Downloaded podcasts') + ' ';
+  RemLinksBtn.Caption:=Ini.ReadString('Settings', 'CLEAR', 'Clear');
+  DownloadedPodcastsDescLbl.Caption:=StringReplace(Ini.ReadString('Settings', 'DOWNLOADED_PODCASTS_DESCRIPTION', 'Once every 3-4 months, is desirable to clean\ndatabase links to find new podcasts are not\nslowed down.'), '\n', #13#10, [rfReplaceAll]);
   Ini.Free;
 
   SetWindowLong(PortEdt.Handle, GWL_STYLE, GetWindowLong(PortEdt.Handle, GWL_STYLE) or ES_NUMBER);
@@ -156,25 +157,25 @@ end;
 
 procedure TSettings.ImportBtnClick(Sender: TObject);
 var
-  OPML:TStringList; i, countAdded:integer; rssLink:string;
+  OPML: TStringList; i, RSSAddedCount: integer; RSSLink: string;
 begin
   if OpenDialog.Execute then begin
-    countAdded:=0;
+    RSSAddedCount:=0;
     OPML:=TStringList.Create;
     OPML.LoadFromFile(OpenDialog.FileName);
     for i:=0 to OPML.Count - 1 do
       if Pos('xmlUrl="',OPML.Strings[i]) > 0 then begin
-        rssLink:=OPML.Strings[i];
-        delete(rssLink, 1, Pos('xmlUrl="', rssLink) + 7);
-        delete(rssLink, Pos('"', rssLink), Length(rssLink));
-        if (Copy(LowerCase(rssLink), 1, 7)='http://') or (Copy(LowerCase(rssLink), 1, 8)='https://') then
-          if Pos(rssLink, Main.RSSListMemo.Text) = 0 then begin
-            Main.RSSListMemo.Lines.Add(rssLink);
-            Inc(countAdded);
+        RSSLink:=OPML.Strings[i];
+        delete(RSSLink, 1, Pos('xmlUrl="', RSSLink) + 7);
+        delete(RSSLink, Pos('"', RSSLink), Length(RSSLink));
+        if (Copy(LowerCase(RSSLink), 1, 7)='http://') or (Copy(LowerCase(RSSLink), 1, 8)='https://') then
+          if Pos(RSSLink, Main.RSSListMemo.Text) = 0 then begin
+            Main.RSSListMemo.Lines.Add(RSSLink);
+            Inc(RSSAddedCount);
           end;
       end;
     OPML.Free;
-    Application.MessageBox(PChar(ID_ADDED_OPML_FEED + ' ' +  IntToStr(countAdded)), PChar(Caption), MB_ICONINFORMATION);
+    Application.MessageBox(PChar(IDS_ADDED_OPML_FEED + ' ' +  IntToStr(RSSAddedCount)), PChar(Caption), MB_ICONINFORMATION);
   end;
 end;
 
@@ -206,7 +207,7 @@ begin
     OPML.Text:=AnsiToUTF8(OPML.Text);
     OPML.SaveToFile(SaveDialog.FileName);
     OPML.Free;
-    Application.MessageBox(PChar(ID_OPML_FILE_SAVED), PChar(Caption), MB_ICONINFORMATION);
+    Application.MessageBox(PChar(IDS_OPML_FILE_SAVED), PChar(Caption), MB_ICONINFORMATION);
   end;
 end;
 
@@ -238,10 +239,10 @@ end;
 
 procedure TSettings.AboutBtnClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Caption + ' 1.1' + #13#10 +
-  ID_LAST_UPDATE + ' 03.03.2022' + #13#10 +
+  Application.MessageBox(PChar(Main.Caption + ' 1.2' + #13#10 +
+  IDS_LAST_UPDATE + ' 26.05.26' + #13#10 +
   'https://r57zone.github.io' + #13#10 +
-  'r57zone@gmail.com'), PChar(ID_ABOUT_TITLE), MB_ICONINFORMATION);
+  'r57zone@gmail.com'), PChar(IDS_ABOUT_TITLE), MB_ICONINFORMATION);
 end;
 
 procedure TSettings.ProxyClrBtnClick(Sender: TObject);
